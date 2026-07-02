@@ -1,0 +1,34 @@
+appId: com.vamsy.deskmate
+productName: DeskMate
+directories:
+  output: release
+  buildResources: resources
+files:
+  - out/**
+  - package.json
+  - resources/** # tray + window icons resolve via app.getAppPath() — without this the packaged app has no tray
+asar: true
+compression: normal
+afterPack: scripts/afterPack.cjs
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: resources/icon.ico
+nsis:
+  oneClick: true
+  perMachine: false
+  deleteAppDataOnUninstall: false
+  artifactName: DeskMate-Setup-${version}.exe
+  runAfterFinish: true
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+# GitHub Releases feed the silent auto-updater — the app's only non-loopback traffic.
+publish:
+  provider: github
+  owner: vamsikrishna2421
+  repo: deskmate

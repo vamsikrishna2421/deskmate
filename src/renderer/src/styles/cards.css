@@ -1,0 +1,254 @@
+/* Card + badge + toast skins (DESIGN §5/§6/§10/§13). Only tokens.css variables. */
+
+/* ── task card (§5/§6) ────────────────────────────────────────────────────── */
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  padding: var(--sp-3) 14px;
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+.card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--ink-3);
+}
+.card__rail {
+  position: absolute;
+  left: 4px;
+  top: var(--sp-2);
+  bottom: var(--sp-2);
+  width: 3px;
+  border-radius: 2px;
+}
+.card__rail[data-rail='overdue'], .legend__rail[data-rail='overdue'] { background: var(--overdue); }
+.card__rail[data-rail='today'], .legend__rail[data-rail='today'] { background: var(--today); }
+.card__rail[data-rail='week'], .legend__rail[data-rail='week'] { background: var(--week); }
+.card__rail[data-rail='none'], .legend__rail[data-rail='none'] { background: transparent; }
+.card__line1 {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.card__title {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 500;
+  color: var(--ink-1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card--done .card__title {
+  font-weight: 400;
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--ink-2) 60%, transparent);
+}
+.card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+  padding-left: 26px;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink-2);
+  min-height: var(--lh-meta);
+}
+.card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--ink-2);
+}
+.card__retry {
+  color: var(--accent);
+  font-size: var(--fs-sec);
+  padding: 0 var(--sp-1);
+  border-radius: var(--r-chip);
+}
+.card__retry:hover { background: var(--accent-tint); }
+.card--washed {
+  animation: wash 800ms var(--ease-exit);
+}
+@keyframes wash {
+  from { background-color: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+  to { background-color: var(--surface); }
+}
+.card--washed .card__title,
+.card--washed .card__meta {
+  animation: fade-in var(--dur-base) var(--ease-enter);
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.card--highlight {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-tint);
+}
+
+/* enrichment states */
+.enrich {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--ink-2);
+  width: 100%;
+}
+.enrich__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  flex: 1;
+}
+.enrich__line {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  width: 60%;
+  background: var(--sunken);
+}
+.enrich__line--short { width: 40%; }
+
+/* check circle */
+.check {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 1px;
+  display: inline-flex;
+  border-radius: 50%;
+}
+.check__ring {
+  stroke: var(--ink-3);
+  transition: stroke var(--dur-fast) var(--ease-standard), fill var(--dur-fast) var(--ease-standard);
+}
+.check:hover .check__ring { fill: var(--accent-tint); stroke: var(--accent); }
+.check__tick {
+  stroke: var(--on-accent);
+  stroke-dasharray: 12;
+  stroke-dashoffset: 12;
+  transition: stroke-dashoffset var(--dur-check) var(--ease-standard);
+}
+.check--done .check__ring { fill: var(--done); stroke: var(--done); }
+.check--done .check__tick { stroke-dashoffset: 0; }
+
+/* ── meta badges (§6/§10) ─────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink-2);
+  border-radius: var(--r-chip);
+}
+.chip--lg { font-size: var(--fs-sec); line-height: var(--lh-sec); }
+.chip__icon { font-size: 9px; }
+.chip--deadline[data-variant='hard'] { color: var(--ink-1); }
+.chip--deadline[data-variant='overdue'] {
+  color: var(--overdue);
+  background: var(--overdue-tint);
+  padding: 0 var(--sp-1);
+}
+.chip--question {
+  color: var(--loop);
+  background: var(--loop-tint);
+  padding: 0 var(--sp-1);
+}
+.chip--question:hover { text-decoration: underline; }
+.chip--effort { color: var(--ink-3); }
+.tagrow { display: inline-flex; align-items: center; gap: 4px; }
+.tagrow__pill {
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+  color: var(--ink-2);
+  background: var(--sunken);
+  border-radius: var(--r-pill);
+  padding: 0 var(--sp-2);
+}
+.tagrow__more { font-size: var(--fs-micro); color: var(--ink-3); }
+.prioritymark { color: var(--ink-1); font-size: 10px; }
+.loopbadge {
+  color: var(--loop);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+.assistantmark { color: var(--accent); font-size: var(--fs-meta); }
+.assistantmark--guessed {
+  text-decoration: underline dotted var(--ink-3);
+  text-underline-offset: 3px;
+}
+.lockmark {
+  color: var(--ink-3);
+  display: inline-flex;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+  margin-left: var(--sp-1);
+}
+.card:hover .lockmark,
+.detail__title:hover .lockmark,
+.detail__summary:hover .lockmark,
+.legend__sample .lockmark { opacity: 1; }
+.focusstar { color: var(--accent); font-size: var(--fs-sec); line-height: 1; }
+.focusstar:not(.focusstar--active) { color: var(--ink-3); }
+.focusstar--proposed { opacity: 0.6; text-decoration: underline dotted; }
+.focusstar:disabled { color: var(--ink-3); opacity: 0.5; }
+
+/* ── toasts (§13) ─────────────────────────────────────────────────────────── */
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-4);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: 60;
+  max-width: calc(100% - var(--sp-8));
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-md);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sec);
+  color: var(--ink-1);
+  animation: toast-in var(--dur-enter) var(--ease-enter);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.toast__action { color: var(--accent); font-weight: 500; }
+.toast__dismiss { color: var(--ink-3); }
+.toast__dismiss:hover { color: var(--ink-1); }
+
+/* ── Windows High Contrast (§18): rails map to system borders, glyphs keep text ── */
+@media (forced-colors: active) {
+  .card { border: 1px solid CanvasText; }
+  .card__rail[data-rail='overdue'],
+  .card__rail[data-rail='today'],
+  .card__rail[data-rail='week'] { background: CanvasText; }
+  .check__ring { stroke: CanvasText; }
+  .check--done .check__ring { fill: Highlight; stroke: Highlight; }
+  .gauge__fill { background: Highlight; }
+  /* Status dots, tab underline, gauge track, and pills lose their tinted backgrounds under
+     forced colors — map them to system colors so the semantics survive. */
+  .dot,
+  .titlebar__working { background: CanvasText; border: 1px solid CanvasText; forced-color-adjust: none; }
+  .dot--hollow { background: Canvas; }
+  .tabs__underline { background: Highlight; forced-color-adjust: none; }
+  .gauge__track { border: 1px solid CanvasText; }
+  .list__pill,
+  .capbar__chip,
+  .coachmark { border: 1px solid CanvasText; }
+}

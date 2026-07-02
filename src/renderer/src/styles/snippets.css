@@ -1,0 +1,183 @@
+/* ── Desk snippets view (tokens only — calm, text-first) ─────────────────── */
+
+.snips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.snips__add {
+  align-self: flex-start;
+  font-size: var(--fs-sec);
+}
+
+.snips__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+}
+.snips__formrow {
+  display: flex;
+  gap: var(--sp-2);
+}
+.snips__kind {
+  flex: 0 0 auto;
+  font-size: var(--fs-sec);
+  background: var(--sunken);
+  color: var(--ink-1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  padding: var(--sp-1) var(--sp-2);
+}
+.snips__label,
+.snips__value {
+  flex: 1;
+  font: inherit;
+  font-size: var(--fs-sec);
+  color: var(--ink-1);
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  padding: var(--sp-1) var(--sp-2);
+  resize: vertical;
+}
+.snips__value { font-family: var(--font-mono); }
+.snips__hint {
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+  color: var(--ink-3);
+  margin: 0;
+}
+.snips__error {
+  font-size: var(--fs-meta);
+  color: var(--overdue);
+  margin: 0;
+}
+.snips__formactions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.snips__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.snips__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas: 'kind body copy actions' 'kind body stamp stamp';
+  align-items: center;
+  column-gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+}
+.snips__row:hover { box-shadow: var(--shadow-sm); }
+
+.snips__kindchip {
+  grid-area: kind;
+  font-size: var(--fs-micro);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--sunken);
+  border-radius: var(--r-pill);
+  padding: 1px var(--sp-2);
+}
+.snips__kindchip--secret { color: var(--loop); background: var(--loop-tint); }
+.snips__kindchip--url { color: var(--week); background: var(--week-tint); }
+
+.snips__body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.snips__rowlabel {
+  font-size: var(--fs-body);
+  font-weight: 500;
+  color: var(--ink-1);
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.snips__rowlabel--link { cursor: pointer; }
+.snips__rowlabel--link:hover { color: var(--accent); text-decoration: underline; }
+.snips__preview {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snips__copy {
+  grid-area: copy;
+  font-size: var(--fs-sec);
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-tint);
+  border: 0;
+  border-radius: var(--r-chip);
+  padding: var(--sp-1) var(--sp-3);
+  cursor: pointer;
+}
+.snips__copy:hover { background: var(--accent); color: var(--on-accent); }
+.snips__copied {
+  grid-area: copy;
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+  color: var(--done);
+  max-width: 110px;
+  text-align: right;
+}
+
+.snips__rowactions {
+  grid-area: actions;
+  display: flex;
+  gap: var(--sp-1);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+.snips__row:hover .snips__rowactions,
+.snips__row:focus-within .snips__rowactions { opacity: 1; }
+.snips__mini {
+  font-size: var(--fs-sec);
+  color: var(--ink-3);
+  background: none;
+  border: 0;
+  border-radius: var(--r-chip);
+  padding: 2px var(--sp-1);
+  cursor: pointer;
+}
+.snips__mini:hover { color: var(--ink-1); background: var(--sunken); }
+.snips__mini--letgo:hover { color: var(--overdue); }
+
+.snips__stamp {
+  grid-area: stamp;
+  font-size: var(--fs-micro);
+  color: var(--ink-3);
+  justify-self: end;
+}
+
+.snips__whisper {
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  text-align: center;
+  margin-top: var(--sp-4);
+}

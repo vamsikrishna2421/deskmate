@@ -1,0 +1,76 @@
+/* Quick-capture window (DESIGN §4): field, hint row, chips, saved-tick.
+   Only tokens.css variables. */
+
+.cap-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: var(--sp-3) var(--sp-4);
+  gap: var(--sp-2);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-window);
+  overflow: hidden;
+  animation: cap-in 160ms var(--ease-enter);
+}
+@keyframes cap-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cap-chips {
+  display: flex;
+  gap: var(--sp-2);
+  flex: none;
+}
+.cap-chip {
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  padding: 1px var(--sp-2);
+  background: var(--surface);
+}
+.cap-chip-deadline {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+
+.cap-field {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--ink-1);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  padding: var(--sp-2) var(--sp-3);
+  overflow-y: auto;
+}
+.cap-field:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.cap-hints {
+  flex: none;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cap-saved {
+  color: var(--accent);
+  font-weight: 500;
+}

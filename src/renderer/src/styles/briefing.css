@@ -1,0 +1,162 @@
+/* Briefing + legend sheets (DESIGN §8/§10). Only tokens.css variables. */
+
+/* ── briefing (§8) ────────────────────────────────────────────────────────── */
+.briefing {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-8) var(--sp-2) var(--sp-4);
+  max-width: 500px;
+  animation: briefing-in var(--dur-briefing) var(--ease-enter);
+  outline: none;
+}
+@keyframes briefing-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.briefing__dateline {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.briefing__greeting {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  font-weight: 400;
+  color: var(--ink-1);
+  margin-top: calc(-1 * var(--sp-4));
+}
+/* Small centered flourish under the greeting — the one ornament in the app. */
+.briefing__rule {
+  width: 48px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0.35;
+  margin-top: calc(-1 * var(--sp-3));
+}
+.briefing__synthesis {
+  margin-top: calc(-1 * var(--sp-3));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.briefing__synthtext {
+  font-size: var(--fs-sec);
+  line-height: var(--lh-sec);
+  color: var(--ink-2);
+}
+.briefing__skeleton {
+  display: block;
+  width: 55%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--sunken);
+}
+.briefing__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  animation: briefing-in var(--dur-enter) var(--ease-enter) backwards;
+}
+.briefing__label {
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.briefing__label--loop { color: var(--loop); }
+.briefing__section ul { list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); }
+.briefing__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.briefing__rowtitle {
+  font-size: var(--fs-sec);
+  color: var(--ink-1);
+  border-radius: var(--r-chip);
+  padding: 1px var(--sp-1);
+}
+.briefing__rowtitle:hover { background: var(--sunken); }
+.briefing__effort {
+  font-size: var(--fs-micro);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.briefing__rowactions { display: inline-flex; gap: var(--sp-1); margin-left: auto; }
+.briefing__more {
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+  align-self: flex-start;
+}
+.briefing__more:hover { color: var(--ink-1); }
+.briefing__hint { font-size: var(--fs-sec); color: var(--ink-2); }
+.briefing__q { font-size: var(--fs-sec); color: var(--ink-1); flex: 1 1 100%; }
+.briefing__clear {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--ink-2);
+  margin-top: calc(-1 * var(--sp-2));
+}
+.briefing__whisper { font-size: var(--fs-sec); color: var(--ink-3); }
+.briefing__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-2);
+}
+
+/* ── legend (§10) ─────────────────────────────────────────────────────────── */
+.legend__group { display: flex; flex-direction: column; gap: var(--sp-1); }
+.legend__groupname {
+  font-size: var(--fs-micro);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.legend__group ul { list-style: none; }
+.legend__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-chip);
+  cursor: default;
+}
+.legend__row:hover { background: var(--sunken); }
+.legend__row--active { background: var(--accent-tint); }
+.legend__sample {
+  width: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.legend__rail {
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  border: none;
+}
+.legend__rail[data-rail='none'] { border: 1px dashed var(--hairline); width: 3px; }
+.legend__pair { display: inline-flex; gap: var(--sp-2); align-items: center; }
+.legend__text { font-size: var(--fs-meta); color: var(--ink-2); }
+.legend__label { font-size: var(--fs-sec); color: var(--ink-1); }
+.legend__footer {
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  text-align: center;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--hairline);
+}
