@@ -33,7 +33,7 @@ export class Updater {
         this.notified = true
         this.deps.notify({
           title: 'DeskMate',
-          body: `DeskMate ${info.version} is ready — "Update now" in the tray, or it installs itself when you quit.`
+          body: `DeskMate ${info.version} downloaded — "Click to update" in the tray, or it installs itself when you quit.`
         })
       }
     })
@@ -61,7 +61,7 @@ export class Updater {
         if (this.readyVersionValue) {
           this.deps.notify({
             title: 'DeskMate',
-            body: `DeskMate ${this.readyVersionValue} is ready — use "Update now" in the tray.`
+            body: `DeskMate ${this.readyVersionValue} is downloaded — use "Click to update" in the tray.`
           })
           return
         }
