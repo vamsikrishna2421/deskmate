@@ -32,8 +32,10 @@ export interface TaskActions {
   onSnooze(id: string): void
   /** 'T' — pins the task into Today ('Picked for today'). */
   onMoveToToday(id: string): void
-  /** 'Let go' — delete, always with an Undo-free calm confirm handled by App. */
+  /** 'Let go' — removes the task; an Undo toast (6s) can restore it exactly as it was. */
   onLetGo(id: string): void
+  /** Free-form extra details → the assistant re-enriches the task with the new facts. */
+  onAddContext(id: string, note: string): void
   /** 'P' cycles urgent→high→normal→low→optional. */
   onCyclePriority(id: string): void
   /** ★ focus star toggle (max 3 alive — main enforces; UI disables at 3). */

@@ -75,6 +75,8 @@ export function InlineTitle(props: {
 
 export function TaskCardDetail(props: TaskCardDetailProps): React.JSX.Element {
   const { task, now, actions } = props
+  const [contextOpen, setContextOpen] = useState(false)
+  const [contextNote, setContextNote] = useState('')
   const touched = new Date(task.activityAt)
   const folded =
     !Number.isNaN(touched.getTime()) &&
@@ -113,9 +115,40 @@ export function TaskCardDetail(props: TaskCardDetailProps): React.JSX.Element {
           {edited && <> · edited {relativeTime(task.updatedAt, now)}</>}
         </div>
       </div>
+      {contextOpen && (
+        <input
+          type="text"
+          className="detail__context"
+          placeholder="Add details — deadline, scope, people… the assistant reworks the task"
+          aria-label="Additional context"
+          autoFocus
+          value={contextNote}
+          onChange={(e) => setContextNote(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && contextNote.trim()) {
+              e.preventDefault()
+              actions.onAddContext(task.id, contextNote.trim())
+              setContextNote('')
+              setContextOpen(false)
+            } else if (e.key === 'Escape') {
+              e.stopPropagation()
+              setContextOpen(false)
+            }
+          }}
+          spellCheck={false}
+        />
+      )}
       <div className="detail__actions">
         <button type="button" className="ghost" onClick={() => actions.onEdit(task.id)}>
           Edit <kbd>E</kbd>
+        </button>
+        <button
+          type="button"
+          className="ghost"
+          title="Tell the assistant something new — it reworks the task with it"
+          onClick={() => setContextOpen((o) => !o)}
+        >
+          Add context
         </button>
         <button type="button" className="ghost" onClick={() => actions.onSnooze(task.id)}>
           Snooze <kbd>S</kbd>
@@ -123,7 +156,12 @@ export function TaskCardDetail(props: TaskCardDetailProps): React.JSX.Element {
         <button type="button" className="ghost" onClick={() => actions.onMoveToToday(task.id)}>
           Move to today <kbd>T</kbd>
         </button>
-        <button type="button" className="ghost ghost--letgo" onClick={() => actions.onLetGo(task.id)}>
+        <button
+          type="button"
+          className="ghost ghost--letgo"
+          title="Removes the task — an Undo appears for a few seconds"
+          onClick={() => actions.onLetGo(task.id)}
+        >
           Let go
         </button>
       </div>

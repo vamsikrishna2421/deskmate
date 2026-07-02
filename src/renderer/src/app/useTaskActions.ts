@@ -29,11 +29,14 @@ export function useTaskActions(
         uiDispatch({
           type: 'pushToast',
           toast: makeToast({
-            text: 'Done',
+            text: 'Done — moved to the Done tab',
             actionLabel: 'Undo',
             onAction: () => void api.invoke('tasks:setStatus', { id, status: 'open' })
           })
         })
+      },
+      onAddContext(id, note) {
+        void api.invoke('tasks:addContext', { id, note })
       },
       onExpand(id) {
         uiDispatch({ type: 'expandTask', id })
@@ -52,7 +55,19 @@ export function useTaskActions(
         void api.invoke('tasks:update', { id, patch: { pinned: true } })
       },
       onLetGo(id) {
+        const t = find(id)
         void api.invoke('tasks:delete', { id })
+        if (!t) return
+        const title = t.title.length > 32 ? `${t.title.slice(0, 32)}…` : t.title
+        uiDispatch({
+          type: 'pushToast',
+          toast: makeToast({
+            text: `Let go of “${title}”`,
+            actionLabel: 'Undo',
+            onAction: () => void api.invoke('tasks:restore', { task: t }),
+            durationMs: 6000
+          })
+        })
       },
       onCyclePriority(id) {
         const t = find(id)

@@ -313,6 +313,12 @@ export function registerIpc(deps: IpcDeps): void {
     deps.pipeline.enqueueReenrich(task.id)
     return task
   })
+  bind('tasks:addContext', (raw) => {
+    const r = obj(raw, 'tasks:addContext')
+    const task = deps.tasksRepo.addContext(id(r.id), str(r.note, 2000, 'note'), now())
+    deps.pipeline.enqueueReenrich(task.id)
+    return task
+  })
   bind('tasks:dismissQuestion', (raw) => {
     const r = obj(raw, 'tasks:dismissQuestion')
     return deps.tasksRepo.dismissQuestion(id(r.taskId, 'taskId'), id(r.questionId, 'questionId'), now())
@@ -323,6 +329,7 @@ export function registerIpc(deps: IpcDeps): void {
   bind('tasks:delete', (raw) => {
     deps.tasksRepo.delete(id(obj(raw, 'tasks:delete').id), now())
   })
+  bind('tasks:restore', (raw) => deps.tasksRepo.restore(obj(raw, 'tasks:restore').task, now()))
 
   bind('briefing:get', () => deps.scheduler.buildNow())
   bind('briefing:ack', (raw) => {

@@ -17,9 +17,13 @@ export interface IpcSchema {
   'tasks:setStatus': { req: { id: string; status: TaskStatus }; res: Task }
   'tasks:toggleSubtask': { req: { taskId: string; subtaskId: string }; res: Task }
   'tasks:answerQuestion': { req: { taskId: string; questionId: string; answer: string }; res: Task }
+  /** Free-form extra details on any task — rides the Q&A channel into re-enrichment. */
+  'tasks:addContext': { req: { id: string; note: string }; res: Task }
   'tasks:dismissQuestion': { req: { taskId: string; questionId: string }; res: Task }
   'tasks:reenrich': { req: { id: string }; res: void }
   'tasks:delete': { req: { id: string }; res: void }
+  /** Undo for 'Let go': reinsert the task exactly as it was (payload is our own cached Task). */
+  'tasks:restore': { req: { task: Task }; res: Task }
   'briefing:get': { req: void; res: Briefing }
   'briefing:ack': { req: { dateKey: string }; res: void }
   'briefing:defer': { req: { dateKey: string }; res: void }
@@ -109,9 +113,11 @@ export const IPC_CHANNELS: readonly IpcChannel[] = [
   'tasks:setStatus',
   'tasks:toggleSubtask',
   'tasks:answerQuestion',
+  'tasks:addContext',
   'tasks:dismissQuestion',
   'tasks:reenrich',
   'tasks:delete',
+  'tasks:restore',
   'briefing:get',
   'briefing:ack',
   'briefing:defer',

@@ -399,3 +399,14 @@
   line-height: var(--lh-meta);
   color: var(--ink-3);
 }
+
+.detail__context {
+  width: 100%;
+  font: inherit;
+  font-size: var(--fs-sec);
+  color: var(--ink-1);
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  padding: var(--sp-1) var(--sp-3);
+}

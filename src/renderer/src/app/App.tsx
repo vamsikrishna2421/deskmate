@@ -383,7 +383,7 @@ export default function App(): React.JSX.Element {
                 uiDispatch({ type: 'closeBriefing' })
                 uiDispatch({ type: 'openEditor', id: taskId })
               } else if (action === 'letGo') {
-                void api.invoke('tasks:delete', { id: taskId })
+                actions.onLetGo(taskId) // undo toast included
               } else {
                 void api.invoke('tasks:update', { id: taskId, patch: {} }) // 'Keep' — refresh activity
               }
@@ -529,7 +529,7 @@ export default function App(): React.JSX.Element {
               uiDispatch({ type: 'openEditor', id: null })
             }}
             onLetGo={(id) => {
-              void api.invoke('tasks:delete', { id })
+              actions.onLetGo(id) // undo toast included
               uiDispatch({ type: 'openEditor', id: null })
             }}
             onClose={() => uiDispatch({ type: 'openEditor', id: null })}

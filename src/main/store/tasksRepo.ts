@@ -382,6 +382,24 @@ export class TasksRepo {
     return next
   }
 
+  /** Free-form context note → qaHistory, so re-enrichment treats it as a fresh fact. */
+  addContext(id: string, note: string, now: Date): Task {
+    this.assertWritable()
+    const text = note.trim()
+    if (!text) throw new Error('context note cannot be empty')
+    const cur = this.mustGet(id)
+    const nowIso = iso(now)
+    const next: Task = {
+      ...cur,
+      qaHistory: [...cur.qaHistory, { question: 'Additional context', answer: text, at: nowIso }],
+      updatedAt: nowIso,
+      activityAt: nowIso
+    }
+    this.tasks.set(id, next)
+    this.commit([next])
+    return next
+  }
+
   dismissQuestion(taskId: string, questionId: string, now: Date): Task {
     this.assertWritable()
     const cur = this.mustGet(taskId)
@@ -485,6 +503,18 @@ export class TasksRepo {
     if (!this.tasks.delete(id)) return
     this.persist()
     this.emit({ upserted: [], deletedIds: [id] })
+  }
+
+  /** Undo for 'Let go': reinsert a task exactly as it was. The payload is coerced through the
+   *  same boundary sanitizer as disk loads — garbage never enters the store. */
+  restore(raw: unknown, now: Date): Task {
+    this.assertWritable()
+    const [task] = sanitizeTasks({ tasks: [raw] })
+    if (!task) throw new Error('restore payload is not a valid task')
+    const next: Task = { ...task, updatedAt: iso(now), activityAt: iso(now) }
+    this.tasks.set(next.id, next)
+    this.commit([next])
+    return next
   }
 
   flush(): Promise<void> {
