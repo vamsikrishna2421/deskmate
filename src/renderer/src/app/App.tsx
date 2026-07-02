@@ -266,6 +266,9 @@ export default function App(): React.JSX.Element {
       case 'guide':
         uiDispatch({ type: 'openSheet', sheet: 'guide' })
         break
+      case 'tour':
+        uiDispatch({ type: 'openSheet', sheet: 'welcome' })
+        break
       case 'settings':
         uiDispatch({ type: 'openSheet', sheet: 'settings' })
         break

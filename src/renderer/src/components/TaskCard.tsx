@@ -87,6 +87,8 @@ function TaskCardImpl(props: TaskCardProps): React.JSX.Element {
     ) {
       return
     }
+    // Text is copyable — a drag-to-select must never toggle the card.
+    if ((window.getSelection()?.toString().length ?? 0) > 0) return
     actions.onExpand(props.expanded ? null : task.id)
   }
 

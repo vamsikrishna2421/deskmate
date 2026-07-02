@@ -30,6 +30,9 @@ export interface Settings {
   bubbleEnabled: boolean
   /** Exclude every DeskMate window from screen capture (Teams/Zoom) — personal, not shareable. */
   privateToScreenShare: boolean
+  /** Hotkey summon prefills capture from the clipboard (read at that moment only, never in
+   *  the background): copy → hotkey → Enter. */
+  captureClipboardPrefill: boolean
   ollama: OllamaSettings
 }
 

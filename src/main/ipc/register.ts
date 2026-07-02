@@ -219,6 +219,9 @@ function sanitizeSettings(
   if (r.privateToScreenShare !== undefined) {
     patch.privateToScreenShare = bool(r.privateToScreenShare, 'privateToScreenShare')
   }
+  if (r.captureClipboardPrefill !== undefined) {
+    patch.captureClipboardPrefill = bool(r.captureClipboardPrefill, 'captureClipboardPrefill')
+  }
   if (r.dueSoonLeadMinutes !== undefined) {
     patch.dueSoonLeadMinutes = clampInt(r.dueSoonLeadMinutes, 1, 24 * 60, 'dueSoonLeadMinutes')
   }

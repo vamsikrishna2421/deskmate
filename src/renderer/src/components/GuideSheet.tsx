@@ -44,14 +44,25 @@ export function GuideSheet(props: GuideSheetProps): React.JSX.Element {
       <section className="guide__section">
         <h3 className="briefing__label">Capture a task</h3>
         <p>
-          From anywhere: <Kbd combo={props.captureHotkey} /> → paste the message → <kbd>Enter</kbd>. The
-          card appears instantly; the assistant fills in the deadline, subtasks, and priority a few
-          seconds later. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> keeps the box open for rapid capture.
+          Copy a message anywhere, press <Kbd combo={props.captureHotkey} /> — your copied text is
+          already in the box — then <kbd>Enter</kbd>. The card appears instantly; the assistant fills
+          in the deadline, subtasks, and priority a few seconds later. <kbd>Ctrl</kbd>+<kbd>Enter</kbd>{' '}
+          keeps the box open for rapid capture.
         </p>
-        <p>
-          Lock your own calls with hints: <code>!today</code> <code>!week</code> <code>!hard</code>{' '}
-          <code>!soft</code> <code>#tag</code> — the assistant never overrides them.
-        </p>
+        <p>State things yourself with plain-word hints anywhere in the text:</p>
+        <ul className="guide__hints">
+          <li>
+            <code>!today</code> · <code>!week</code> · <code>!later</code> — when it&apos;s due
+          </li>
+          <li>
+            <code>!hard</code> — that deadline is firm (●), not flexible (○); <code>!soft</code> for
+            the opposite
+          </li>
+          <li>
+            <code>#finance</code>, <code>#dashboards</code>… — topic labels for grouping and search
+          </li>
+        </ul>
+        <p>Whatever you state with a hint is yours — the assistant never changes it.</p>
       </section>
 
       <section className="guide__section">

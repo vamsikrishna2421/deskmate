@@ -84,6 +84,11 @@ export interface PushSchema {
   'window:shaded': { on: boolean }
   /** Full snippet list (small) after any vault mutation; secret values are always ''. */
   'snippets:changed': Snippet[]
+  /** Tray navigation: switch the companion to a view / open a sheet. */
+  'nav:view': { view: 'today' | 'week' | 'later' | 'done' | 'snippets' }
+  'nav:sheet': { sheet: 'guide' | 'legend' | 'welcome' }
+  /** Hotkey summon read the clipboard (that moment only) — prefill the capture field. */
+  'capture:prefill': { text: string }
 }
 
 export type IpcChannel = keyof IpcSchema
@@ -147,5 +152,8 @@ export const PUSH_CHANNELS: readonly PushChannel[] = [
   'nav:focusTask',
   'capture:submitted',
   'window:shaded',
-  'snippets:changed'
+  'snippets:changed',
+  'nav:view',
+  'nav:sheet',
+  'capture:prefill'
 ] as const

@@ -63,6 +63,7 @@ export type TitleBarMenuAction =
   | 'settings'
   | 'briefing'
   | 'guide'
+  | 'tour'
   | 'pauseAssistant'
   | 'resumeAssistant'
   | 'moveWindow'

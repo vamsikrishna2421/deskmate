@@ -183,6 +183,18 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
         <p id="private-hint" className="settings__hint">
           Teams and Zoom viewers can&apos;t see DeskMate — it stays visible only to you.
         </p>
+        <label className="settings__row settings__row--toggle">
+          <span className="settings__label">Prefill capture from clipboard</span>
+          <input
+            type="checkbox"
+            checked={settings.captureClipboardPrefill}
+            aria-describedby="prefill-hint"
+            onChange={(e) => props.onUpdate({ captureClipboardPrefill: e.target.checked })}
+          />
+        </label>
+        <p id="prefill-hint" className="settings__hint">
+          Copy → hotkey → Enter. The clipboard is read only at that moment, never in the background.
+        </p>
         <HotkeyField
           label="Quick capture"
           value={settings.hotkeyCapture}

@@ -26,6 +26,7 @@ function makeDefaults(): AppState {
     dueSoonLeadMinutes: DUE_SOON_LEAD_MINUTES_DEFAULT,
     bubbleEnabled: true,
     privateToScreenShare: true,
+    captureClipboardPrefill: true,
     ollama: { baseUrl: OLLAMA_DEFAULT_BASE_URL, preferredModels: [...PREFERRED_MODELS], paused: false },
     alwaysOnTop: false,
     coachMarksSeen: [],
@@ -84,6 +85,7 @@ function mergeLoaded(defaults: AppState, doc: Record<string, unknown>): AppState
   state.remindersEnabled = bool(partial.remindersEnabled, defaults.remindersEnabled)
   state.bubbleEnabled = bool(partial.bubbleEnabled, defaults.bubbleEnabled)
   state.privateToScreenShare = bool(partial.privateToScreenShare, defaults.privateToScreenShare)
+  state.captureClipboardPrefill = bool(partial.captureClipboardPrefill, defaults.captureClipboardPrefill)
   state.alwaysOnTop = bool(partial.alwaysOnTop, defaults.alwaysOnTop)
   state.hotkeyCapture = nonEmptyString(partial.hotkeyCapture, defaults.hotkeyCapture)
   state.hotkeyToggle = nonEmptyString(partial.hotkeyToggle, defaults.hotkeyToggle)

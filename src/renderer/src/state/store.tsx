@@ -101,6 +101,8 @@ function Bootstrap({ children }: { children: ReactNode }): ReactNode {
           })
         ),
         api.on('nav:focusTask', (p) => uiDispatch({ type: 'focusTask', id: p.taskId, expand: true })),
+        api.on('nav:view', (p) => uiDispatch({ type: 'setView', view: p.view })),
+        api.on('nav:sheet', (p) => uiDispatch({ type: 'openSheet', sheet: p.sheet })),
         api.on('capture:submitted', (p) => uiDispatch({ type: 'captureSubmitted', taskId: p.taskId })),
         api.on('window:shaded', (p) => uiDispatch({ type: 'setShaded', on: p.on }))
       )

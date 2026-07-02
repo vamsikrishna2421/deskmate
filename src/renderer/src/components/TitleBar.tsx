@@ -7,6 +7,7 @@ import type { TitleBarMenuAction, TitleBarProps } from './props'
 
 const MENU_ITEMS: ReadonlyArray<{ action: TitleBarMenuAction; label: string }> = [
   { action: 'guide', label: 'How to use DeskMate' },
+  { action: 'tour', label: 'Welcome tour' },
   { action: 'legend', label: 'Legend' },
   { action: 'settings', label: 'Settings' },
   { action: 'briefing', label: 'Morning briefing' },
@@ -94,6 +95,15 @@ export function TitleBar(props: TitleBarProps): React.JSX.Element {
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
             <path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
+        </button>
+        <button
+          type="button"
+          className="titlebar__btn"
+          aria-label="How to use DeskMate"
+          title="How to use DeskMate (F1)"
+          onClick={() => props.onMenu('guide')}
+        >
+          ?
         </button>
         <button
           type="button"

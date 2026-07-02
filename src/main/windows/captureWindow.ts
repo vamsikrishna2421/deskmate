@@ -1,9 +1,10 @@
 /** Quick-capture popup (DESIGN.md §3–4): pre-created hidden 520×180, frameless, always on top,
  *  never user-resizable; shown centered horizontally at 22% height of the display under the
  *  cursor; blur or Esc hides it (never destroyed → instant reopen); grows once to 520×300. */
-import { app, BrowserWindow, screen } from 'electron'
+import { app, BrowserWindow, clipboard, screen } from 'electron'
 import { join } from 'node:path'
-import { CAPTURE_WINDOW } from '@shared/constants'
+import { CAPTURE_WINDOW, PASTE_CAP_TOTAL } from '@shared/constants'
+import { push } from '../ipc/push'
 
 const GROW_ANIMATION_MS = 140
 const GROW_STEP_MS = 20
@@ -12,7 +13,10 @@ export class CaptureWindowManager {
   private win: BrowserWindow | undefined
   private growTimer: ReturnType<typeof setInterval> | undefined
 
-  constructor(private readonly isProtected: () => boolean = () => false) {}
+  constructor(
+    private readonly isProtected: () => boolean = () => false,
+    private readonly clipboardPrefill: () => boolean = () => false
+  ) {}
 
   setContentProtection(on: boolean): void {
     this.get()?.setContentProtection(on)
@@ -79,6 +83,14 @@ export class CaptureWindowManager {
     })
     w.show()
     w.focus()
+    // Copy → hotkey → Enter: read the clipboard ONLY at this user-invoked moment (never in
+    // the background) and offer it as the capture text. The renderer shows provenance.
+    if (this.clipboardPrefill()) {
+      const text = clipboard.readText().trim()
+      if (text && text.length <= PASTE_CAP_TOTAL * 2) {
+        push('capture:prefill', { text })
+      }
+    }
   }
 
   hide(): void {

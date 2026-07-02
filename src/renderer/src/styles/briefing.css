@@ -226,3 +226,66 @@
 .guide__keys td { padding: var(--sp-1) var(--sp-3) var(--sp-1) 0; vertical-align: top; }
 .guide__keys td:first-child { white-space: nowrap; }
 .guide__footer { border-top: 1px solid var(--hairline); padding-top: var(--sp-3); }
+.guide__hints { list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); padding-left: var(--sp-2); }
+
+/* Tour visuals — pictorial before→after and the three marks, mock-rendered. */
+.tour__demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  padding: var(--sp-3);
+  max-width: 420px;
+}
+.tour__demo--row { flex-direction: row; justify-content: space-between; gap: var(--sp-3); }
+.tour__msg {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
+  color: var(--ink-2);
+}
+.tour__msg mark { background: var(--accent-tint); color: var(--ink-1); border-radius: 3px; padding: 0 2px; }
+.tour__arrow {
+  font-size: var(--fs-micro);
+  color: var(--ink-3);
+  text-align: center;
+}
+.tour__minicard {
+  display: flex;
+  gap: var(--sp-2);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  padding: var(--sp-2) var(--sp-3);
+}
+.tour__minirail { width: 3px; border-radius: 2px; background: var(--week); flex: none; }
+.tour__minibody { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+.tour__minititle { font-size: var(--fs-sec); font-weight: 500; color: var(--ink-1); }
+.tour__minimeta { display: flex; align-items: center; gap: var(--sp-2); }
+.tour__chip {
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+  color: var(--ink-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  padding: 0 var(--sp-2);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.tour__chip--hard { color: var(--today); border-color: var(--today-tint); background: var(--today-tint); }
+.tour__chip--loop { color: var(--loop); border-color: var(--loop-tint); background: var(--loop-tint); }
+.tour__markdemo { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); }
+.tour__marklabel { font-size: var(--fs-micro); color: var(--ink-3); }
+
+/* Content text is copyable — chrome is not. Selection suppresses click-to-expand (TaskCard). */
+.card__title,
+.detail__summary,
+.detail__sourcetext,
+.subtask__title,
+.snips__rowlabel,
+.snips__preview,
+.briefing__rowtitle {
+  user-select: text;
+}

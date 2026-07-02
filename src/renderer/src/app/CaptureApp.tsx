@@ -51,6 +51,7 @@ function buildSubmission(raw: string, chip: ChipState): Submission {
 
 export default function CaptureApp(): React.JSX.Element {
   const [text, setText] = useState('')
+  const [context, setContext] = useState('')
   const [pasted, setPasted] = useState(false)
   const [chip, setChip] = useState<ChipState>('none')
   const [saved, setSaved] = useState(false)
@@ -76,17 +77,29 @@ export default function CaptureApp(): React.JSX.Element {
   // Ctrl+Enter inline confirmation: 'Saved ✓' for 600ms on the capture:submitted push.
   useEffect(() => {
     let unsub: (() => void) | undefined
+    let unsubPrefill: (() => void) | undefined
     try {
       unsub = on('capture:submitted', () => {
         setSaved(true)
         window.clearTimeout(savedTimer.current)
         savedTimer.current = window.setTimeout(() => setSaved(false), 600)
       })
+      // Hotkey summon read the clipboard (that moment only) — offer it, fully selected so
+      // typing replaces it instantly and Enter accepts it as-is.
+      unsubPrefill = on('capture:prefill', (p) => {
+        setText((cur) => {
+          if (cur.trim()) return cur // never clobber something already typed
+          setPasted(true)
+          requestAnimationFrame(() => fieldRef.current?.select())
+          return p.text
+        })
+      })
     } catch (err) {
       console.error(err)
     }
     return () => {
       unsub?.()
+      unsubPrefill?.()
       window.clearTimeout(savedTimer.current)
     }
   }, [])
@@ -96,6 +109,7 @@ export default function CaptureApp(): React.JSX.Element {
     const onVisibility = (): void => {
       if (document.visibilityState === 'hidden') {
         setText('')
+        setContext('')
         setPasted(false)
         setChip('none')
         setSaved(false)
@@ -108,7 +122,10 @@ export default function CaptureApp(): React.JSX.Element {
   }, [])
 
   const submit = (keepOpen: boolean): void => {
-    const { text: cleaned, hints } = buildSubmission(text, chip)
+    // Extra context rides along labeled, so the assistant weighs it WITH the pasted message.
+    const note = context.trim()
+    const combined = note ? `${text}\n\nAdditional context from me: ${note}` : text
+    const { text: cleaned, hints } = buildSubmission(combined, chip)
     if (!cleaned) return
     void invoke('capture:submit', {
       text: cleaned,
@@ -118,6 +135,7 @@ export default function CaptureApp(): React.JSX.Element {
     })
     if (keepOpen) {
       setText('')
+      setContext('')
       setPasted(false)
       setChip('none')
       fieldRef.current?.focus()
@@ -168,6 +186,26 @@ export default function CaptureApp(): React.JSX.Element {
         onKeyDown={onKeyDown}
         spellCheck={false}
       />
+      {pasted && text.trim().length > 0 && (
+        <input
+          type="text"
+          className="cap-context"
+          placeholder="Add context — deadline, who it's for, details… (optional)"
+          aria-label="Additional context"
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              submit(e.ctrlKey || e.metaKey)
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              void invoke('capture:dismiss', undefined)
+            }
+          }}
+          spellCheck={false}
+        />
+      )}
       <div className="cap-hints" aria-hidden="true">
         {saved ? (
           <span className="cap-saved">Saved ✓</span>

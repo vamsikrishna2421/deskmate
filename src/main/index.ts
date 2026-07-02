@@ -1,6 +1,6 @@
 /** Composition root: single-instance lock, lifecycle, repos, LLM stack, windows, tray,
  *  shortcuts, scheduler, IPC. 'window-all-closed' never quits — DeskMate lives in the tray. */
-import { app, dialog, nativeTheme, powerMonitor, session } from 'electron'
+import { app, dialog, nativeTheme, powerMonitor, session, shell } from 'electron'
 import { join } from 'node:path'
 import { localDateKey } from '@shared/dates/dayMath'
 import type { Briefing } from '@shared/types/enrichment'
@@ -140,7 +140,10 @@ function bootstrap(): void {
 
     const windowMgr = new MainWindowManager({ appStateRepo: aRepo, isQuitting: () => quitting })
     mainWindowMgr = windowMgr
-    const captureMgr = new CaptureWindowManager(() => aRepo.get().privateToScreenShare)
+    const captureMgr = new CaptureWindowManager(
+      () => aRepo.get().privateToScreenShare,
+      () => aRepo.get().captureClipboardPrefill
+    )
     const bubbleMgr = new BubbleWindowManager(aRepo)
     initPush(() => ({ main: windowMgr.get(), capture: captureMgr.get() }))
 
@@ -187,6 +190,22 @@ function bootstrap(): void {
         windowMgr.show()
         presentBriefing(scheduler.buildNow())
       },
+      onOpenDesk: () => {
+        windowMgr.show()
+        push('nav:view', { view: 'snippets' })
+      },
+      onOpenGuide: () => {
+        windowMgr.show()
+        push('nav:sheet', { sheet: 'guide' })
+      },
+      onOpenTour: () => {
+        windowMgr.show()
+        push('nav:sheet', { sheet: 'welcome' })
+      },
+      onOpenLegend: () => {
+        windowMgr.show()
+        push('nav:sheet', { sheet: 'legend' })
+      },
       onPinChange: (onTop) => {
         windowMgr.setPinned(onTop)
         aRepo.update({ alwaysOnTop: onTop })
@@ -195,6 +214,12 @@ function bootstrap(): void {
         aRepo.update({ launchAtLogin: enabled })
         syncAutoLaunch(enabled)
       },
+      onStartHiddenChange: (enabled) => aRepo.update({ startHidden: enabled }),
+      onBubbleChange: (enabled) => {
+        aRepo.update({ bubbleEnabled: enabled })
+        bubbleMgr.sync()
+      },
+      onRemindersChange: (enabled) => aRepo.update({ remindersEnabled: enabled }),
       onPauseChange: (paused) => {
         aRepo.update({ ollama: { ...aRepo.get().ollama, paused } })
         pipeline.setPaused(paused)
@@ -205,6 +230,16 @@ function bootstrap(): void {
         captureMgr.setContentProtection(on)
         bubbleMgr.setContentProtection(on)
       },
+      onModelSelect: (model) => {
+        aRepo.update({ ollama: { ...aRepo.get().ollama, selectedModel: model } })
+      },
+      onThemeChange: (theme) => {
+        aRepo.update({ theme })
+        nativeTheme.themeSource = theme
+      },
+      onOpenDataFolder: () => void shell.openPath(dataDir),
+      onReportProblem: () =>
+        void shell.openExternal('https://github.com/vamsikrishna2421/deskmate/issues/new'),
       onQuit: () => app.quit()
     })
 
@@ -219,14 +254,32 @@ function bootstrap(): void {
           t.deadline.dueDate <= todayKey
       ).length
     }
+    const openLoopsCount = (): number =>
+      tRepo
+        .list()
+        .filter((t) => t.status !== 'done' && t.status !== 'archived')
+        .reduce((n, t) => n + t.questions.filter((q) => q.status === 'open').length, 0)
     const trayState = (): TrayState => {
       const s = aRepo.get()
+      const c = client.status()
       return {
         dueTodayCount: dueTodayCount(),
+        loopsCount: openLoopsCount(),
+        hotkeyCapture: s.hotkeyCapture,
+        assistant: {
+          reachable: c.reachable,
+          paused: s.ollama.paused,
+          activeModel: c.activeModel,
+          models: c.models,
+          selectedModel: s.ollama.selectedModel
+        },
         pinned: s.alwaysOnTop,
         launchAtLogin: s.launchAtLogin,
-        paused: s.ollama.paused,
+        startHidden: s.startHidden,
+        bubbleEnabled: s.bubbleEnabled,
         privateToScreenShare: s.privateToScreenShare,
+        remindersEnabled: s.remindersEnabled,
+        theme: s.theme,
         companionVisible: windowMgr.isVisible(),
         updateReady: updater.readyVersion()
       }
@@ -273,7 +326,10 @@ function bootstrap(): void {
       queued: queue.size(),
       paused: aRepo.get().ollama.paused
     })
-    client.onStatusChange(() => push('ollama:statusChanged', ollamaStatus()))
+    client.onStatusChange(() => {
+      push('ollama:statusChanged', ollamaStatus())
+      updateTray() // assistant line + model list live in the tray
+    })
     queue.onChange(() => push('ollama:statusChanged', ollamaStatus()))
 
     registerIpc({

@@ -9,7 +9,11 @@ interface PushTargets {
   capture?: BrowserWindow
 }
 
-const CAPTURE_CHANNELS: ReadonlySet<PushChannel> = new Set(['capture:submitted', 'settings:changed'])
+const CAPTURE_CHANNELS: ReadonlySet<PushChannel> = new Set([
+  'capture:submitted',
+  'settings:changed',
+  'capture:prefill'
+])
 
 let getTargetsFn: (() => PushTargets) | undefined
 

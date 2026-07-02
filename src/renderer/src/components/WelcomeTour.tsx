@@ -23,6 +23,50 @@ interface Step {
   kicker: string
   title: string
   body: React.ReactNode
+  visual?: React.ReactNode
+}
+
+/** Pictorial before→after: a raw message becoming an organized card. */
+function CaptureDemo(): React.JSX.Element {
+  return (
+    <div className="tour__demo" aria-hidden="true">
+      <div className="tour__msg">
+        &ldquo;Need the Q2 numbers by <mark>Friday</mark> — it&apos;s for the VP deck&rdquo;
+      </div>
+      <div className="tour__arrow">↓ the assistant reads it</div>
+      <div className="tour__minicard">
+        <span className="tour__minirail" />
+        <div className="tour__minibody">
+          <div className="tour__minititle">Pull Q2 numbers for the VP deck</div>
+          <div className="tour__minimeta">
+            <span className="tour__chip tour__chip--hard">● friday</span>
+            <span className="tour__chip">~1h</span>
+            <span className="tour__mark">✦</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** The three marks, shown as they actually render. */
+function MarksDemo(): React.JSX.Element {
+  return (
+    <div className="tour__demo tour__demo--row" aria-hidden="true">
+      <div className="tour__markdemo">
+        <span className="tour__chip tour__chip--hard">● today 5pm</span>
+        <span className="tour__marklabel">firm deadline</span>
+      </div>
+      <div className="tour__markdemo">
+        <span className="tour__chip">○ Friday</span>
+        <span className="tour__marklabel">soft target</span>
+      </div>
+      <div className="tour__markdemo">
+        <span className="tour__chip tour__chip--loop">◌ when?</span>
+        <span className="tour__marklabel">has a question</span>
+      </div>
+    </div>
+  )
 }
 
 export function WelcomeTour(props: WelcomeTourProps): React.JSX.Element {
@@ -52,16 +96,19 @@ export function WelcomeTour(props: WelcomeTourProps): React.JSX.Element {
       body: (
         <>
           <p>
-            From anywhere — Teams, Outlook, your browser — press <Keys combo={props.captureHotkey} /> and
-            paste. The task appears instantly; the assistant organizes it a few seconds later.
+            Copy a message anywhere — Teams, Outlook, your browser — then press{' '}
+            <Keys combo={props.captureHotkey} />. Your copied text is already waiting; press{' '}
+            <kbd>Enter</kbd> and the assistant organizes it a few seconds later.
           </p>
           <p>
-            Inside DeskMate, press <kbd>N</kbd> or click <strong>+</strong>. Type hints like{' '}
-            <code>!today</code>, <code>!hard</code>, or <code>#tag</code> to lock things the assistant
-            must not change.
+            Want to state something yourself? Add plain words to the text:{' '}
+            <code>!today</code> means &ldquo;this is due today&rdquo;, <code>!hard</code> means
+            &ldquo;that deadline is firm, not flexible&rdquo;, and <code>#finance</code> adds a topic
+            label. Whatever you state this way is yours — the assistant never changes it.
           </p>
         </>
-      )
+      ),
+      visual: <CaptureDemo />
     },
     {
       kicker: 'ALWAYS AROUND',
@@ -96,7 +143,8 @@ export function WelcomeTour(props: WelcomeTourProps): React.JSX.Element {
           </p>
           <p>Each morning, DeskMate opens with a briefing of what matters today.</p>
         </>
-      )
+      ),
+      visual: <MarksDemo />
     }
   ]
 
@@ -128,6 +176,7 @@ export function WelcomeTour(props: WelcomeTourProps): React.JSX.Element {
       <h2 className="briefing__greeting">{current.title}</h2>
       <span className="briefing__rule" aria-hidden="true" />
       <div className="tour__body">{current.body}</div>
+      {current.visual}
 
       <div className="tour__dots" aria-label={`Step ${step + 1} of ${steps.length}`}>
         {steps.map((_, i) => (
