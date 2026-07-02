@@ -88,6 +88,27 @@ const DRAW = `
       }
       return c.toDataURL('image/png').split(',')[1]
     }
+    // NSIS welcome/finish sidebar (164x314): dark panel, mark centered high, wordmark below.
+    const sidebar = () => {
+      const c = document.createElement('canvas')
+      c.width = 164; c.height = 314
+      const ctx = c.getContext('2d')
+      ctx.fillStyle = '#161514'
+      ctx.fillRect(0, 0, 164, 314)
+      const size = 96
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(src, sx, sy, side, side, (164 - size) / 2, 56, size, size)
+      ctx.fillStyle = '#EDEAE4'
+      ctx.font = '500 18px "Segoe UI", sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('DeskMate', 82, 190)
+      ctx.fillStyle = '#A5A099'
+      ctx.font = '400 10px "Segoe UI", sans-serif'
+      ctx.fillText('Always on your desk,', 82, 212)
+      ctx.fillText('always a step ahead.', 82, 226)
+      return Array.from(ctx.getImageData(0, 0, 164, 314).data)
+    }
     return {
       icon256: render(256, false),
       icon48: render(48, false),
@@ -96,10 +117,38 @@ const DRAW = `
       tray16: render(16, false),
       tray32: render(32, false),
       att16: render(16, true),
-      att32: render(32, true)
+      att32: render(32, true),
+      sidebar: sidebar()
     }
   })()
 `
+
+/** Uncompressed 24-bit BMP from RGBA pixels (NSIS sidebars require BMP). */
+function buildBmp(rgba, width, height) {
+  const rowSize = Math.ceil((width * 3) / 4) * 4
+  const pixelBytes = rowSize * height
+  const buf = Buffer.alloc(54 + pixelBytes)
+  buf.write('BM', 0)
+  buf.writeUInt32LE(54 + pixelBytes, 2)
+  buf.writeUInt32LE(54, 10)
+  buf.writeUInt32LE(40, 14)
+  buf.writeInt32LE(width, 18)
+  buf.writeInt32LE(height, 22)
+  buf.writeUInt16LE(1, 26)
+  buf.writeUInt16LE(24, 28)
+  buf.writeUInt32LE(pixelBytes, 34)
+  for (let y = 0; y < height; y++) {
+    const srcRow = height - 1 - y // BMP rows are bottom-up
+    for (let x = 0; x < width; x++) {
+      const i = (srcRow * width + x) * 4
+      const o = 54 + y * rowSize + x * 3
+      buf[o] = rgba[i + 2] // B
+      buf[o + 1] = rgba[i + 1] // G
+      buf[o + 2] = rgba[i] // R
+    }
+  }
+  return buf
+}
 
 /** ICO container with PNG-compressed entries (valid since Vista). */
 function buildIco(entries) {
@@ -140,6 +189,7 @@ app.whenReady().then(async () => {
   writeFileSync(join(RES, 'tray@2x.png'), buf(out.tray32))
   writeFileSync(join(RES, 'tray-attention.png'), buf(out.att16))
   writeFileSync(join(RES, 'tray-attention@2x.png'), buf(out.att32))
+  writeFileSync(join(RES, 'installerSidebar.bmp'), buildBmp(out.sidebar, 164, 314))
   writeFileSync(
     join(RES, 'icon.ico'),
     buildIco([

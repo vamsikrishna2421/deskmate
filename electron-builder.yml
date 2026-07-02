@@ -16,8 +16,12 @@ win:
       arch: [x64]
   icon: resources/icon.ico
 nsis:
-  oneClick: true
+  # Assisted wizard (Next → Install → Finish) with a welcome-page introduction — the real
+  # interactive tutorial runs in-app on first launch. Auto-UPDATES still install silently.
+  oneClick: false
+  allowToChangeInstallationDirectory: false
   perMachine: false
+  installerSidebar: resources/installerSidebar.bmp
   include: resources/installer.nsh
   deleteAppDataOnUninstall: false
   artifactName: DeskMate-Setup-${version}.exe
