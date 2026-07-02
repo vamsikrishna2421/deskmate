@@ -262,7 +262,18 @@ export function TaskList(props: TaskListProps): React.JSX.Element {
         </div>
       )}
       {empty ? (
-        <p className="list__empty">{props.filtered ? 'Nothing matches.' : displayVm.emptyText}</p>
+        laterView && bucket ? (
+          // A size pill with no matches must explain itself — items without an effort
+          // estimate live outside every size bucket.
+          <div className="list__empty">
+            <p>Nothing sized {BUCKETS.find((b) => b.id === bucket)?.label} here.</p>
+            <button type="button" className="ghost" onClick={() => setBucket(null)}>
+              Show everything
+            </button>
+          </div>
+        ) : (
+          <p className="list__empty">{props.filtered ? 'Nothing matches.' : displayVm.emptyText}</p>
+        )
       ) : (
         shown.map((g) => (
           <section key={g.key} className="list__group">
