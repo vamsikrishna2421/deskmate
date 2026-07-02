@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApi, useTasks, useUI, useUIDispatch } from '../state/store'
 import { effortBucket, legendPredicate } from '../state/selectors'
-import { formatMinutes } from '../lib/format'
+import { formatEffort, formatMinutes } from '../lib/format'
 import { TaskCard } from './TaskCard'
 import type { EffortBucket, Task, TaskGroup, TaskListProps, ViewModel } from './props'
 
@@ -93,13 +93,19 @@ export function TaskList(props: TaskListProps): React.JSX.Element {
     .filter((g) => g.tasks.length > 0)
 
   // ── Later effort filter row ──────────────────────────────────────────────────
+  // A size pick DIMS non-matching tasks instead of hiding them — nothing ever silently
+  // vanishes, and each dimmed card explains itself (ⓘ tooltip).
   const [bucket, setBucket] = useState<EffortBucket | null>(null)
   const laterView = displayVm.view === 'later'
-  const shown = laterView && bucket
-    ? groups
-        .map((g) => ({ ...g, tasks: g.tasks.filter((t) => effortBucket(t.effort) === bucket) }))
-        .filter((g) => g.tasks.length > 0)
-    : groups
+  const shown = groups
+  const bucketLabel = bucket ? BUCKETS.find((b) => b.id === bucket)?.label ?? '' : ''
+  const dimReason = (t: Task): string | null => {
+    if (!laterView || !bucket) return null
+    if (effortBucket(t.effort) === bucket) return null
+    return t.effort
+      ? `Sized ${formatEffort(t.effort)} — outside your ${bucketLabel} pick`
+      : `No size estimate yet, so it doesn't match ${bucketLabel}`
+  }
 
   const flatIds = shown.flatMap((g) => g.tasks.map((t) => t.id))
   const itemRefs = useRef(new Map<string, HTMLDivElement>())
@@ -295,11 +301,13 @@ export function TaskList(props: TaskListProps): React.JSX.Element {
                 )}
               </header>
             )}
-            {g.tasks.map((t) => (
+            {g.tasks.map((t) => {
+              const why = dimReason(t)
+              return (
               <div
                 key={t.id}
                 role="listitem"
-                className="listitem"
+                className={`listitem${why ? ' listitem--dimmed' : ''}`}
                 tabIndex={effectiveFocus === t.id ? 0 : -1}
                 ref={(el) => {
                   if (el) itemRefs.current.set(t.id, el)
@@ -309,6 +317,11 @@ export function TaskList(props: TaskListProps): React.JSX.Element {
                   if (e.target === e.currentTarget) setFocusedId(t.id)
                 }}
               >
+                {why && (
+                  <span className="listitem__why" title={why} aria-label={why}>
+                    ⓘ
+                  </span>
+                )}
                 <TaskCard
                   task={t}
                   now={props.now}
@@ -321,7 +334,8 @@ export function TaskList(props: TaskListProps): React.JSX.Element {
                   actions={props.actions}
                 />
               </div>
-            ))}
+              )
+            })}
           </section>
         ))
       )}

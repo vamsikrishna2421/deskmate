@@ -465,3 +465,17 @@
   border-radius: var(--r-chip);
 }
 .filterbar__clear:hover { background: var(--surface); }
+
+/* Dimmed-by-filter: present but not the current pick; the why is one hover away. */
+.listitem { position: relative; }
+.listitem--dimmed { opacity: 0.38; transition: opacity var(--dur-fast) var(--ease-standard); }
+.listitem--dimmed:hover, .listitem--dimmed:focus-within { opacity: 0.75; }
+.listitem__why {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-3);
+  z-index: 1;
+  font-size: var(--fs-micro);
+  color: var(--ink-3);
+  cursor: help;
+}
