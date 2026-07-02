@@ -2,7 +2,7 @@
  *  hydrate once, then apply 'tasks:changed' deltas. Untouched tasks keep object identity
  *  (React.memo guarantee — ARCHITECTURE §4.1). */
 
-import type { Task } from '@shared/types/task'
+import type { Task, TrashEntry } from '@shared/types/task'
 import type { AppState, OllamaStatus } from '@shared/types/appState'
 
 /** Transient per-task pipeline activity ('queued'|'running'); persistent state lives on task.enrichment. */
@@ -11,6 +11,8 @@ export type ActiveEnrichment = Readonly<Record<string, 'queued' | 'running'>>
 export interface TasksState {
   hydrated: boolean
   tasks: Task[]
+  /** The Let go bin — restorable for 30 days. */
+  trash: TrashEntry[]
   enrichment: ActiveEnrichment
   ollama: OllamaStatus | null
   settings: AppState | null
@@ -19,6 +21,7 @@ export interface TasksState {
 export type TasksAction =
   | { type: 'hydrate'; tasks: Task[]; settings: AppState; ollama: OllamaStatus }
   | { type: 'applyChange'; upserted: Task[]; deletedIds: string[] }
+  | { type: 'trash'; entries: TrashEntry[] }
   | { type: 'enrichmentStatus'; taskId: string; status: 'queued' | 'running' | 'done' | 'failed' | 'skipped' }
   | { type: 'ollamaStatus'; status: OllamaStatus }
   | { type: 'settings'; settings: AppState }
@@ -26,6 +29,7 @@ export type TasksAction =
 export const initialTasksState: TasksState = {
   hydrated: false,
   tasks: [],
+  trash: [],
   enrichment: {},
   ollama: null,
   settings: null
@@ -64,10 +68,14 @@ export function tasksReducer(state: TasksState, action: TasksAction): TasksState
       return {
         hydrated: true,
         tasks: action.tasks,
+        trash: state.trash,
         enrichment: state.enrichment,
         ollama: action.ollama,
         settings: action.settings
       }
+
+    case 'trash':
+      return { ...state, trash: action.entries }
 
     case 'applyChange': {
       const tasks = applyChange(state.tasks, action.upserted, action.deletedIds)

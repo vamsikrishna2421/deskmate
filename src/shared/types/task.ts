@@ -101,6 +101,12 @@ export interface Task {
   activityAt: string
 }
 
+/** A task in the Let go bin: restorable for 30 days, then pruned. */
+export interface TrashEntry {
+  task: Task
+  letGoAt: string
+}
+
 /** Fields a user (or main-process action) may patch directly. Patching a provenance-guarded
  *  field flips its provenance to 'user' permanently. */
 export interface TaskPatch {

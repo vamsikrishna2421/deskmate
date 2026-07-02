@@ -62,9 +62,9 @@ export function useTaskActions(
         uiDispatch({
           type: 'pushToast',
           toast: makeToast({
-            text: `Let go of “${title}”`,
+            text: `Let go of “${title}” — it's in the Done tab's Let go bin for 30 days`,
             actionLabel: 'Undo',
-            onAction: () => void api.invoke('tasks:restore', { task: t }),
+            onAction: () => void api.invoke('tasks:restoreTrashed', { id }),
             durationMs: 6000
           })
         })

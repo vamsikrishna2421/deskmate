@@ -479,3 +479,28 @@
   color: var(--ink-3);
   cursor: help;
 }
+
+/* Let go bin — quiet rows, one-click Restore. */
+.letgo { margin-top: var(--sp-6); }
+.letgo__list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); }
+.letgo__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px dashed var(--hairline);
+  border-radius: var(--r-card);
+  opacity: 0.75;
+}
+.letgo__row:hover { opacity: 1; }
+.letgo__title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sec);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.letgo__stamp { font-size: var(--fs-micro); color: var(--ink-3); white-space: nowrap; }
+.letgo__whisper { font-size: var(--fs-micro); color: var(--ink-3); margin-top: var(--sp-2); text-align: center; }

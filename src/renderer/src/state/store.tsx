@@ -101,6 +101,7 @@ function Bootstrap({ children }: { children: ReactNode }): ReactNode {
           })
         ),
         api.on('nav:focusTask', (p) => uiDispatch({ type: 'focusTask', id: p.taskId, expand: true })),
+        api.on('tasks:trashChanged', (entries) => tasksDispatch({ type: 'trash', entries })),
         api.on('nav:view', (p) => uiDispatch({ type: 'setView', view: p.view })),
         api.on('nav:sheet', (p) => uiDispatch({ type: 'openSheet', sheet: p.sheet })),
         api.on('capture:submitted', (p) => uiDispatch({ type: 'captureSubmitted', taskId: p.taskId })),
@@ -110,11 +111,13 @@ function Bootstrap({ children }: { children: ReactNode }): ReactNode {
       void Promise.all([
         api.invoke('tasks:list', undefined),
         api.invoke('settings:get', undefined),
-        api.invoke('ollama:status', undefined)
+        api.invoke('ollama:status', undefined),
+        api.invoke('tasks:trashList', undefined).catch(() => [])
       ])
-        .then(([tasks, settings, ollama]) => {
+        .then(([tasks, settings, ollama, trash]) => {
           if (disposed) return
           tasksDispatch({ type: 'hydrate', tasks, settings, ollama })
+          tasksDispatch({ type: 'trash', entries: trash })
           uiDispatch({ type: 'seedCoachmarks', seen: settings.coachMarksSeen })
         })
         .catch((err: unknown) => {

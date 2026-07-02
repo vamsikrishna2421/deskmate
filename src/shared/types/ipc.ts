@@ -1,7 +1,7 @@
 /** Single source of truth for the typed IPC contract (ARCHITECTURE.md §3 + DESIGN.md §16 deltas).
  *  Pure — no Electron/Node imports. */
 
-import type { Task, TaskPatch, TaskStatus } from './task'
+import type { Task, TaskPatch, TaskStatus, TrashEntry } from './task'
 import type { AppState, OllamaStatus, Settings } from './appState'
 import type { Briefing, CaptureHints } from './enrichment'
 import type { Snippet, SnippetKind, SnippetPatch } from './snippet'
@@ -22,8 +22,10 @@ export interface IpcSchema {
   'tasks:dismissQuestion': { req: { taskId: string; questionId: string }; res: Task }
   'tasks:reenrich': { req: { id: string }; res: void }
   'tasks:delete': { req: { id: string }; res: void }
-  /** Undo for 'Let go': reinsert the task exactly as it was (payload is our own cached Task). */
-  'tasks:restore': { req: { task: Task }; res: Task }
+  /** The Let go bin (soft-deleted tasks, kept 30 days). */
+  'tasks:trashList': { req: void; res: TrashEntry[] }
+  /** Restore from the Let go bin — the task returns exactly as it was. */
+  'tasks:restoreTrashed': { req: { id: string }; res: Task }
   'briefing:get': { req: void; res: Briefing }
   'briefing:ack': { req: { dateKey: string }; res: void }
   'briefing:defer': { req: { dateKey: string }; res: void }
@@ -88,6 +90,8 @@ export interface PushSchema {
   'window:shaded': { on: boolean }
   /** Full snippet list (small) after any vault mutation; secret values are always ''. */
   'snippets:changed': Snippet[]
+  /** The Let go bin after any change (delete / restore / prune). */
+  'tasks:trashChanged': TrashEntry[]
   /** Tray navigation: switch the companion to a view / open a sheet. */
   'nav:view': { view: 'today' | 'week' | 'later' | 'done' | 'snippets' }
   'nav:sheet': { sheet: 'guide' | 'legend' | 'welcome' }
@@ -117,7 +121,8 @@ export const IPC_CHANNELS: readonly IpcChannel[] = [
   'tasks:dismissQuestion',
   'tasks:reenrich',
   'tasks:delete',
-  'tasks:restore',
+  'tasks:trashList',
+  'tasks:restoreTrashed',
   'briefing:get',
   'briefing:ack',
   'briefing:defer',
@@ -159,6 +164,7 @@ export const PUSH_CHANNELS: readonly PushChannel[] = [
   'capture:submitted',
   'window:shaded',
   'snippets:changed',
+  'tasks:trashChanged',
   'nav:view',
   'nav:sheet',
   'capture:prefill'

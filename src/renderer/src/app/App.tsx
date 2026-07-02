@@ -56,6 +56,7 @@ import { TaskList } from '../components/TaskList'
 import { SnippetsView } from '../components/SnippetsView'
 import { WelcomeTour } from '../components/WelcomeTour'
 import { GuideSheet } from '../components/GuideSheet'
+import { LetGoSection } from '../components/LetGoSection'
 import { TaskEditor } from '../components/TaskEditor'
 import { SheetContainer } from '../components/SheetContainer'
 import { BriefingSheet } from '../components/BriefingSheet'
@@ -462,6 +463,7 @@ export default function App(): React.JSX.Element {
                 actions={actions}
               />
             )}
+            {ui.view === 'done' && !filtered && <LetGoSection entries={tasksState.trash} />}
           </div>
         </>
       )}

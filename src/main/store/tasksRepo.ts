@@ -12,7 +12,8 @@ import type {
   Subtask,
   Task,
   TaskPatch,
-  TaskStatus
+  TaskStatus,
+  TrashEntry
 } from '../../shared/types/task'
 import {
   FOCUS_STARS_MAX,
@@ -30,10 +31,14 @@ import { backupDirFor } from './backup'
 import { migrateDoc, ReadOnlyStoreError } from './migrations'
 
 const CAPTURE_TITLE_MAX = 80
+/** Let go bin retention: restorable this long, then pruned on load. */
+const TRASH_KEEP_DAYS = 30
+const TRASH_MAX = 200
 
 interface TasksDoc {
   schemaVersion: number
   tasks: Task[]
+  trash?: TrashEntry[]
 }
 
 export interface TasksChange {
@@ -177,13 +182,16 @@ function applyStatusChange(next: Task, status: TaskStatus, nowIso: string): void
 export class TasksRepo {
   private readonly store: JsonStore<TasksDoc>
   private readonly tasks = new Map<string, Task>()
+  private trash: TrashEntry[] = []
   private readonly listeners = new Set<(c: TasksChange) => void>()
+  private readonly trashListeners = new Set<(t: TrashEntry[]) => void>()
   private readonly readOnlyMode: boolean
 
-  private constructor(store: JsonStore<TasksDoc>, tasks: Task[], readOnly: boolean) {
+  private constructor(store: JsonStore<TasksDoc>, tasks: Task[], trash: TrashEntry[], readOnly: boolean) {
     this.store = store
     this.readOnlyMode = readOnly
     for (const t of tasks) this.tasks.set(t.id, t)
+    this.trash = trash
   }
 
   static async load(dataDir: string): Promise<TasksRepo> {
@@ -203,7 +211,20 @@ export class TasksRepo {
       if (err instanceof ReadOnlyStoreError) readOnly = true
       else throw err
     }
-    const repo = new TasksRepo(store, sanitizeTasks(doc), readOnly)
+    // Let go bin: sanitize entries and prune anything past retention.
+    const cutoff = Date.now() - TRASH_KEEP_DAYS * 86_400_000
+    const rawTrash = Array.isArray((doc as { trash?: unknown }).trash)
+      ? ((doc as { trash: unknown[] }).trash as Array<{ task?: unknown; letGoAt?: unknown }>)
+      : []
+    const trash: TrashEntry[] = []
+    for (const e of rawTrash) {
+      if (typeof e !== 'object' || e === null || typeof e.letGoAt !== 'string') continue
+      const at = Date.parse(e.letGoAt)
+      if (Number.isNaN(at) || at < cutoff) continue
+      const [task] = sanitizeTasks({ tasks: [e.task] })
+      if (task) trash.push({ task, letGoAt: e.letGoAt })
+    }
+    const repo = new TasksRepo(store, sanitizeTasks(doc), trash, readOnly)
     if (migrated && !readOnly) repo.persist()
     return repo
   }
@@ -498,22 +519,38 @@ export class TasksRepo {
     this.commit([next])
   }
 
-  delete(id: string, _now: Date): void {
+  /** 'Let go' is a soft delete: the task moves to the bin, restorable for 30 days. */
+  delete(id: string, now: Date): void {
     this.assertWritable()
-    if (!this.tasks.delete(id)) return
+    const task = this.tasks.get(id)
+    if (!task || !this.tasks.delete(id)) return
+    this.trash = [{ task, letGoAt: iso(now) }, ...this.trash].slice(0, TRASH_MAX)
     this.persist()
     this.emit({ upserted: [], deletedIds: [id] })
+    this.emitTrash()
   }
 
-  /** Undo for 'Let go': reinsert a task exactly as it was. The payload is coerced through the
-   *  same boundary sanitizer as disk loads — garbage never enters the store. */
-  restore(raw: unknown, now: Date): Task {
+  trashList(): TrashEntry[] {
+    return [...this.trash]
+  }
+
+  onTrashChange(cb: (t: TrashEntry[]) => void): () => void {
+    this.trashListeners.add(cb)
+    return () => {
+      this.trashListeners.delete(cb)
+    }
+  }
+
+  /** Restore from the Let go bin — the task returns exactly as it was. */
+  restoreTrashed(id: string, now: Date): Task {
     this.assertWritable()
-    const [task] = sanitizeTasks({ tasks: [raw] })
-    if (!task) throw new Error('restore payload is not a valid task')
-    const next: Task = { ...task, updatedAt: iso(now), activityAt: iso(now) }
+    const entry = this.trash.find((e) => e.task.id === id)
+    if (!entry) throw new Error(`task ${id} is not in the Let go bin`)
+    this.trash = this.trash.filter((e) => e.task.id !== id)
+    const next: Task = { ...entry.task, updatedAt: iso(now), activityAt: iso(now) }
     this.tasks.set(next.id, next)
     this.commit([next])
+    this.emitTrash()
     return next
   }
 
@@ -552,8 +589,13 @@ export class TasksRepo {
     for (const cb of this.listeners) cb(change)
   }
 
+  private emitTrash(): void {
+    const list = this.trashList()
+    for (const cb of this.trashListeners) cb(list)
+  }
+
   private persist(): void {
     if (this.readOnlyMode) return
-    this.store.save({ schemaVersion: SCHEMA_VERSION, tasks: [...this.tasks.values()] })
+    this.store.save({ schemaVersion: SCHEMA_VERSION, tasks: [...this.tasks.values()], trash: this.trash })
   }
 }

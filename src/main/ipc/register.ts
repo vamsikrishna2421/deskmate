@@ -329,7 +329,10 @@ export function registerIpc(deps: IpcDeps): void {
   bind('tasks:delete', (raw) => {
     deps.tasksRepo.delete(id(obj(raw, 'tasks:delete').id), now())
   })
-  bind('tasks:restore', (raw) => deps.tasksRepo.restore(obj(raw, 'tasks:restore').task, now()))
+  bind('tasks:trashList', () => deps.tasksRepo.trashList())
+  bind('tasks:restoreTrashed', (raw) =>
+    deps.tasksRepo.restoreTrashed(id(obj(raw, 'tasks:restoreTrashed').id), now())
+  )
 
   bind('briefing:get', () => deps.scheduler.buildNow())
   bind('briefing:ack', (raw) => {

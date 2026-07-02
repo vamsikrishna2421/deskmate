@@ -316,6 +316,7 @@ function bootstrap(): void {
       updateTray()
     })
     sRepo.onChange((list) => push('snippets:changed', list))
+    tRepo.onTrashChange((entries) => push('tasks:trashChanged', entries))
     aRepo.onChange((state) => {
       push('settings:changed', state)
       updateTray()
