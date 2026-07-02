@@ -85,7 +85,8 @@ export class TrayManager {
         ...(state.updateReady
           ? [
               {
-                label: `Restart to update (${state.updateReady})`,
+                // Only the app blinks — never the laptop. "Restart" reads scarier than it is.
+                label: `Update now (${state.updateReady})`,
                 click: (): void => this.deps.onInstallUpdate()
               }
             ]
