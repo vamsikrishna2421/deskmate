@@ -12,11 +12,22 @@ export interface MainWindowDeps {
   isQuitting: () => boolean
 }
 
+/** First-frame background matches the theme so no black/white box ever flashes. */
+function themeBackground(theme: string): string {
+  return theme === 'light' ? '#F6F4F0' : '#161514'
+}
+
+/** If the renderer never signals ui:ready (wedged page), reveal anyway after this. */
+const REVEAL_FALLBACK_MS = 4000
+
 export class MainWindowManager {
   private win: BrowserWindow | undefined
   private shaded = false
   private restoreHeight: number = MAIN_WINDOW.height
   private stateHandle: WindowStateHandle | undefined
+  private pendingReveal = false
+  private revealed = false
+  private revealFallback: ReturnType<typeof setTimeout> | undefined
 
   constructor(private readonly deps: MainWindowDeps) {}
 
@@ -32,6 +43,7 @@ export class MainWindowManager {
       maxWidth: MAIN_WINDOW.maxWidth,
       frame: false,
       show: false,
+      backgroundColor: themeBackground(this.deps.appStateRepo.get().theme),
       skipTaskbar: false,
       maximizable: false,
       fullscreenable: false,
@@ -54,9 +66,13 @@ export class MainWindowManager {
     // Personal, not shareable: excluded from Teams/Zoom capture (WDA_EXCLUDEFROMCAPTURE).
     win.setContentProtection(this.deps.appStateRepo.get().privateToScreenShare)
 
-    win.once('ready-to-show', () => {
-      if (showOnReady) this.show()
-    })
+    // The window reveals on the renderer's ui:ready signal (first meaningful render), never
+    // on first paint — the app must appear whole, not piece by piece. Fallback keeps a wedged
+    // renderer from leaving the app invisible.
+    this.pendingReveal = showOnReady
+    if (showOnReady) {
+      this.revealFallback = setTimeout(() => this.revealNow(), REVEAL_FALLBACK_MS)
+    }
     win.on('close', (event) => {
       if (!this.deps.isQuitting()) {
         event.preventDefault()
@@ -100,9 +116,21 @@ export class MainWindowManager {
   show(): void {
     const w = this.get()
     if (!w) return
+    this.revealed = true
     if (w.isMinimized()) w.restore()
     w.show()
     w.focus()
+  }
+
+  /** ui:ready from the companion renderer — perform the (single) deferred reveal. */
+  revealNow(): void {
+    if (this.revealed || !this.pendingReveal) return
+    if (this.revealFallback) {
+      clearTimeout(this.revealFallback)
+      this.revealFallback = undefined
+    }
+    this.pendingReveal = false
+    this.show()
   }
 
   hide(): void {

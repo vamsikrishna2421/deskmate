@@ -41,9 +41,12 @@ try {
   step('windows', pages.length >= 1, `found ${pages.length} windows`)
 
   await companion.waitForSelector('.app-shell, [class*="app"]', { timeout: 15000 })
+  // The window reveals on ui:ready and the briefing fires on its first focus — wait for it.
+  await companion
+    .waitForSelector('text=Start the day', { timeout: 10000 })
+    .catch(() => undefined)
   await new Promise((r) => setTimeout(r, 800))
   await companion.screenshot({ path: join(shotDir, '01-launch.png') })
-  // First focus of the day fires the morning briefing sheet — dismiss it before driving keys.
   const briefingOpen = await companion.locator('text=Start the day').count()
   if (briefingOpen > 0) {
     await companion.keyboard.press('Enter')
@@ -92,7 +95,11 @@ try {
     `tasks after enrichment: ${taskCount} (2 expected from multi-ask; 1 = model merged the asks — model variance, not an app bug)`
   )
 
-  // Quick-capture window: show it via main, type a terse task, submit.
+  // Quick-capture window: created ~2.5s after launch (off the cold-start path) — find it now.
+  for (let i = 0; i < 20 && !capturePage; i++) {
+    await new Promise((r) => setTimeout(r, 300))
+    capturePage = app.windows().find((p) => p.url().includes('capture'))
+  }
   if (capturePage) {
     await app.evaluate(({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().includes('capture'))

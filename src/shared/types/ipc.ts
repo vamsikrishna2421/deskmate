@@ -55,6 +55,9 @@ export interface IpcSchema {
   'data:openFolder': { req: void; res: void }
   'data:exportAll': { req: void; res: { path: string } | { canceled: true } }
   'app:getVersion': { req: void; res: string }
+  /** Renderer signals "first meaningful render done" (hydrated + fonts + painted) —
+   *  main reveals the window only then, so the app appears whole, never piece by piece. */
+  'ui:ready': { req: void; res: void }
 }
 
 /** main → renderer via webContents.send (broadcast to both windows) */
@@ -126,7 +129,8 @@ export const IPC_CHANNELS: readonly IpcChannel[] = [
   'snippets:open',
   'data:openFolder',
   'data:exportAll',
-  'app:getVersion'
+  'app:getVersion',
+  'ui:ready'
 ] as const
 
 export const PUSH_CHANNELS: readonly PushChannel[] = [

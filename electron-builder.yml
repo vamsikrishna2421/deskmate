@@ -18,6 +18,7 @@ win:
 nsis:
   oneClick: true
   perMachine: false
+  include: resources/installer.nsh
   deleteAppDataOnUninstall: false
   artifactName: DeskMate-Setup-${version}.exe
   runAfterFinish: true

@@ -8,6 +8,7 @@ export interface TrayState {
   pinned: boolean
   launchAtLogin: boolean
   paused: boolean
+  privateToScreenShare: boolean
   companionVisible: boolean
   /** Version string when a downloaded update is waiting for a restart. */
   updateReady?: string
@@ -21,6 +22,7 @@ export interface TrayDeps {
   onPinChange: (onTop: boolean) => void
   onLaunchChange: (enabled: boolean) => void
   onPauseChange: (paused: boolean) => void
+  onPrivacyChange: (privateToScreenShare: boolean) => void
   onCheckUpdates: () => void
   onInstallUpdate: () => void
   onQuit: () => void
@@ -71,6 +73,13 @@ export class TrayManager {
           type: 'checkbox',
           checked: state.paused,
           click: (item) => this.deps.onPauseChange(item.checked)
+        },
+        {
+          // Quick flip for taking a screenshot — the same capture APIs power Teams AND PrtScn.
+          label: 'Invisible to screen capture',
+          type: 'checkbox',
+          checked: state.privateToScreenShare,
+          click: (item) => this.deps.onPrivacyChange(item.checked)
         },
         { type: 'separator' },
         ...(state.updateReady

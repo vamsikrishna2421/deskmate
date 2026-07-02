@@ -22,6 +22,28 @@ import {
   viewForTask,
   type ViewModel
 } from '../state/selectors'
+import type { LegendFilterId } from '../state/uiReducer'
+
+/** Human label for the active legend filter banner. */
+const FILTER_LABELS: Record<LegendFilterId, string> = {
+  overdue: 'carried over',
+  dueToday: 'due today',
+  thisWeek: 'this week',
+  later: 'later',
+  hardDeadline: 'hard deadlines',
+  softDeadline: 'soft targets',
+  question: 'open questions',
+  assistant: 'organized by the assistant',
+  guessed: 'assistant guesses',
+  locked: 'your edits',
+  done: 'done',
+  urgent: 'urgent',
+  high: 'high priority',
+  stalled: 'quiet for a while',
+  offline: 'assistant offline',
+  working: 'being organized',
+  focus: 'focus'
+}
 import { briefingFallback, focusedWorkSentence, formatTime, truncate } from '../lib/format'
 import { useTaskActions } from './useTaskActions'
 import { useGlobalKeys } from './useGlobalKeys'
@@ -80,6 +102,19 @@ export default function App(): React.JSX.Element {
   useEffect(() => {
     api.invoke('app:getVersion', undefined).then(setVersion).catch(() => setVersion(''))
   }, [api])
+
+  // First meaningful render → ui:ready → main reveals the window. Fonts + a painted frame
+  // (double RAF) are part of "ready": the user must never watch the app assemble itself.
+  const readySentRef = useRef(false)
+  useEffect(() => {
+    if (!tasksState.hydrated || readySentRef.current) return
+    readySentRef.current = true
+    void document.fonts.ready.then(() => {
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => void api.invoke('ui:ready', undefined).catch(() => undefined))
+      )
+    })
+  }, [tasksState.hydrated, api])
 
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const reachable = tasksState.ollama?.reachable ?? true
@@ -335,6 +370,20 @@ export default function App(): React.JSX.Element {
             onSearchChange={(query) => uiDispatch({ type: 'setSearchQuery', query })}
             onSearchClose={() => uiDispatch({ type: 'setSearchOpen', open: false })}
           />
+          {ui.legendFilter && (
+            <div className="filterbar" role="status">
+              <span>
+                Showing <strong>{FILTER_LABELS[ui.legendFilter]}</strong> only
+              </span>
+              <button
+                type="button"
+                className="filterbar__clear"
+                onClick={() => uiDispatch({ type: 'setLegendFilter', filter: null })}
+              >
+                Show everything
+              </button>
+            </div>
+          )}
           <CaptureBar
             open={ui.captureOpen}
             onSubmit={(req) => {

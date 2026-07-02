@@ -441,3 +441,27 @@
   box-shadow: var(--focus-ring);
 }
 
+
+/* Active legend-filter banner — a filter must never be silent. */
+.filterbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin: var(--sp-2) var(--sp-4) 0;
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+  background: var(--accent-tint);
+  border-radius: var(--r-chip);
+}
+.filterbar strong { color: var(--ink-1); font-weight: 500; }
+.filterbar__clear {
+  flex: none;
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  color: var(--accent);
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-chip);
+}
+.filterbar__clear:hover { background: var(--surface); }

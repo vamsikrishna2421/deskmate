@@ -23,6 +23,7 @@ export class CaptureWindowManager {
       width: CAPTURE_WINDOW.width,
       height: CAPTURE_WINDOW.height,
       show: false,
+      backgroundColor: '#1F1E1C',
       frame: false,
       alwaysOnTop: true,
       skipTaskbar: true,
@@ -64,6 +65,7 @@ export class CaptureWindowManager {
   }
 
   show(): void {
+    if (!this.get()) this.create() // creation is deferred off the launch path
     const w = this.get()
     if (!w) return
     this.stopGrow()

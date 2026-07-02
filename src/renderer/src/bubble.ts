@@ -40,6 +40,16 @@ img.alt = ''
 el.appendChild(img)
 root.appendChild(el)
 
+// Signal ui:ready once the logo is decoded and a frame has painted — main reveals us then.
+void img
+  .decode()
+  .catch(() => undefined)
+  .then(() => {
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => void window.loops.invoke('ui:ready', undefined).catch(() => undefined))
+    )
+  })
+
 let dragging = false
 let moved = false
 let grabDx = 0

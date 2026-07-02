@@ -224,3 +224,12 @@ a {
     border: 1px solid CanvasText;
   }
 }
+
+/* Single composed entrance — the shell fades in as one piece on reveal. */
+.app-shell {
+  animation: shell-in var(--dur-expand) var(--ease-enter);
+}
+@keyframes shell-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

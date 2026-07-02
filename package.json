@@ -1,7 +1,7 @@
 {
   "name": "deskmate",
   "productName": "DeskMate",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "DeskMate — always on your desk, always a step ahead. Offline-first task companion powered by on-device LLMs.",
   "main": "out/main/index.js",
   "private": true,

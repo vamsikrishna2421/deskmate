@@ -419,6 +419,12 @@ export function registerIpc(deps: IpcDeps): void {
   bind('data:exportAll', () => exportAll(deps))
 
   bind('app:getVersion', () => app.getVersion())
+
+  bind('ui:ready', (_raw, event) => {
+    const url = event.senderFrame?.url ?? ''
+    if (url.includes('bubble')) deps.bubbleWindow.markReady()
+    else if (url.includes('index')) deps.mainWindow.revealNow()
+  })
 }
 
 function applySettingsUpdate(deps: IpcDeps, raw: unknown): AppState {

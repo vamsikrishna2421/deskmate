@@ -110,9 +110,29 @@ export function makeToast(t: Omit<Toast, 'id'>): Toast {
 
 export function uiReducer(state: UIState, action: UIAction): UIState {
   switch (action.type) {
-    case 'setView':
-      if (state.view === action.view) return state
-      return { ...state, view: action.view, expandedTaskId: null }
+    case 'setView': {
+      // A view tab is "take me home": it also clears every narrowing state (legend filter,
+      // search, batch mode) and closes legend/settings sheets — never a silent filtered view.
+      const noise =
+        state.legendFilter !== null ||
+        state.legendHover !== null ||
+        state.searchOpen ||
+        state.searchQuery !== '' ||
+        state.loopsBatchMode ||
+        (state.activeSheet !== null && state.activeSheet !== 'briefing')
+      if (state.view === action.view && !noise) return state
+      return {
+        ...state,
+        view: action.view,
+        expandedTaskId: null,
+        legendFilter: null,
+        legendHover: null,
+        searchOpen: false,
+        searchQuery: '',
+        loopsBatchMode: false,
+        activeSheet: state.activeSheet === 'briefing' ? state.activeSheet : null
+      }
+    }
 
     case 'expandTask':
       if (state.expandedTaskId === action.id) return state

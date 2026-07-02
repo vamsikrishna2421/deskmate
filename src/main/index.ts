@@ -199,6 +199,12 @@ function bootstrap(): void {
         aRepo.update({ ollama: { ...aRepo.get().ollama, paused } })
         pipeline.setPaused(paused)
       },
+      onPrivacyChange: (on) => {
+        aRepo.update({ privateToScreenShare: on })
+        windowMgr.setContentProtection(on)
+        captureMgr.setContentProtection(on)
+        bubbleMgr.setContentProtection(on)
+      },
       onQuit: () => app.quit()
     })
 
@@ -220,6 +226,7 @@ function bootstrap(): void {
         pinned: s.alwaysOnTop,
         launchAtLogin: s.launchAtLogin,
         paused: s.ollama.paused,
+        privateToScreenShare: s.privateToScreenShare,
         companionVisible: windowMgr.isVisible(),
         updateReady: updater.readyVersion()
       }
@@ -238,20 +245,18 @@ function bootstrap(): void {
     const showOnReady = !E2E && !HIDDEN_FLAG && !settings.startHidden
     const mainWin = windowMgr.create(showOnReady)
     e2eLog('window-created', { id: 'main' })
-    captureMgr.create()
+    // Launch choreography: the companion reveals on its renderer's ui:ready; the bubble reveals
+    // only when ITS content is ready (then stays forever); the capture popup spins up after
+    // launch so three renderers never race a cold start.
     if (!E2E) bubbleMgr.sync()
+    if (E2E) captureMgr.create()
+    else setTimeout(() => {
+      if (!captureMgr.get()) captureMgr.create()
+    }, 2500)
 
-    const syncBubble = (): void => bubbleMgr.setCompanionVisible(windowMgr.isVisible())
     mainWin.on('focus', () => scheduler.onAppEvent('focus'))
-    mainWin.on('show', () => {
-      updateTray()
-      syncBubble()
-    })
-    mainWin.on('hide', () => {
-      updateTray()
-      syncBubble()
-    })
-    syncBubble()
+    mainWin.on('show', updateTray)
+    mainWin.on('hide', updateTray)
 
     tRepo.onChange((change) => {
       push('tasks:changed', change)

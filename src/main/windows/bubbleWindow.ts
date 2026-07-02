@@ -8,7 +8,8 @@ import type { AppStateRepo } from '../store/appStateRepo'
 
 export class BubbleWindowManager {
   private win: BrowserWindow | undefined
-  private companionVisible = false
+  /** Renderer signaled ui:ready (logo decoded + painted) — never reveal before that. */
+  private contentReady = false
 
   constructor(private readonly appStateRepo: AppStateRepo) {}
 
@@ -26,21 +27,18 @@ export class BubbleWindowManager {
     this.create()
   }
 
-  /** Chat-head contract: the bubble exists to summon DeskMate — while the companion window
-   *  is visible it hides, so it can never sit on top of the app's own controls. */
-  setCompanionVisible(visible: boolean): void {
-    this.companionVisible = visible
+  /** ui:ready from the bubble renderer (logo decoded, first frame painted). The bubble is a
+   *  permanent fixture: once ready it is ALWAYS on screen (while enabled) — click toggles the
+   *  companion, and the dot itself never disappears. It's draggable if it's ever in the way. */
+  markReady(): void {
+    this.contentReady = true
     this.applyVisibility()
   }
 
   private applyVisibility(): void {
     const w = this.get()
     if (!w) return
-    if (this.companionVisible) {
-      if (w.isVisible()) w.hide()
-    } else if (!w.isVisible()) {
-      w.showInactive()
-    }
+    if (this.contentReady && !w.isVisible()) w.showInactive()
   }
 
   get(): BrowserWindow | undefined {
@@ -116,9 +114,7 @@ export class BubbleWindowManager {
     win.setVisibleOnAllWorkspaces?.(true, { visibleOnFullScreen: false })
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
     win.webContents.on('will-navigate', (event) => event.preventDefault())
-    win.once('ready-to-show', () => {
-      if (!this.companionVisible) win.showInactive()
-    })
+    // Reveal is driven by markReady() (renderer ui:ready) + applyVisibility — never first paint.
 
     const devUrl = process.env['ELECTRON_RENDERER_URL']
     if (devUrl && !app.isPackaged) void win.loadURL(`${devUrl}/bubble.html`)
