@@ -6,6 +6,7 @@ import '../styles/components.css'
 import type { TitleBarMenuAction, TitleBarProps } from './props'
 
 const MENU_ITEMS: ReadonlyArray<{ action: TitleBarMenuAction; label: string }> = [
+  { action: 'guide', label: 'How to use DeskMate' },
   { action: 'legend', label: 'Legend' },
   { action: 'settings', label: 'Settings' },
   { action: 'briefing', label: 'Morning briefing' },

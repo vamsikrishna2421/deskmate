@@ -34,6 +34,12 @@ export function useGlobalKeys(deps: GlobalKeysDeps): void {
   useEffect(() => {
     const handleEscape = (): void => {
       const u = uiRef.current
+      if (u.activeSheet === 'welcome') {
+        // Esc = skip; persist so the tour never ambushes the user again.
+        void api.invoke('settings:update', { onboardingDone: true })
+        uiDispatch({ type: 'openSheet', sheet: null })
+        return
+      }
       if (u.activeSheet === 'briefing' && u.briefing) {
         void api.invoke('briefing:defer', { dateKey: u.briefing.dateKey })
         uiDispatch({ type: 'closeBriefing' })
@@ -98,6 +104,14 @@ export function useGlobalKeys(deps: GlobalKeysDeps): void {
       }
       if (e.key === 'Escape') {
         handleEscape()
+        return
+      }
+      if (e.key === 'F1') {
+        e.preventDefault()
+        uiDispatch({
+          type: 'openSheet',
+          sheet: uiRef.current.activeSheet === 'guide' ? null : 'guide'
+        })
         return
       }
       if (isEditableTarget(e.target) || e.ctrlKey || e.metaKey || e.altKey) return

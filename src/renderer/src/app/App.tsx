@@ -54,6 +54,8 @@ import { CaptureBar } from '../components/CaptureBar'
 import { ViewTabs } from '../components/ViewTabs'
 import { TaskList } from '../components/TaskList'
 import { SnippetsView } from '../components/SnippetsView'
+import { WelcomeTour } from '../components/WelcomeTour'
+import { GuideSheet } from '../components/GuideSheet'
 import { TaskEditor } from '../components/TaskEditor'
 import { SheetContainer } from '../components/SheetContainer'
 import { BriefingSheet } from '../components/BriefingSheet'
@@ -102,6 +104,31 @@ export default function App(): React.JSX.Element {
   useEffect(() => {
     api.invoke('app:getVersion', undefined).then(setVersion).catch(() => setVersion(''))
   }, [api])
+
+  // Very first launch → the welcome tour teaches by doing (README is where instructions die).
+  const welcomeShownRef = useRef(false)
+  useEffect(() => {
+    if (!tasksState.hydrated || welcomeShownRef.current || !tasksState.settings) return
+    if (!tasksState.settings.onboardingDone) {
+      welcomeShownRef.current = true
+      uiDispatch({ type: 'openSheet', sheet: 'welcome' })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasksState.hydrated, tasksState.settings])
+
+  const finishTour = (withSample: boolean): void => {
+    void api.invoke('settings:update', { onboardingDone: true })
+    uiDispatch({ type: 'openSheet', sheet: null })
+    if (withSample) {
+      const SAMPLE =
+        'Hey! Before EOD Friday can you pull the Q2 vendor spend from Snowflake and reconcile it ' +
+        'against the AP ledger? Send the summary deck to Priya when done. Also, if you find some ' +
+        'spare time this week, the team wiki could use a cleanup.'
+      void api
+        .invoke('tasks:create', { sourceText: SAMPLE, sourceKind: 'paste' })
+        .then((t) => uiDispatch({ type: 'focusTask', id: t.id }))
+    }
+  }
 
   // First meaningful render → ui:ready → main reveals the window. Fonts + a painted frame
   // (double RAF) are part of "ready": the user must never watch the app assemble itself.
@@ -236,6 +263,9 @@ export default function App(): React.JSX.Element {
       case 'legend':
         uiDispatch({ type: 'openSheet', sheet: 'legend' })
         break
+      case 'guide':
+        uiDispatch({ type: 'openSheet', sheet: 'guide' })
+        break
       case 'settings':
         uiDispatch({ type: 'openSheet', sheet: 'settings' })
         break
@@ -309,7 +339,15 @@ export default function App(): React.JSX.Element {
         />
       )}
 
-      {briefingOpen && ui.briefing ? (
+      {ui.activeSheet === 'welcome' ? (
+        <div className="app-scroll">
+          <WelcomeTour
+            captureHotkey={settings?.hotkeyCapture ?? 'Control+Shift+Space'}
+            toggleHotkey={settings?.hotkeyToggle ?? 'Control+Shift+L'}
+            onFinish={finishTour}
+          />
+        </div>
+      ) : briefingOpen && ui.briefing ? (
         <div className="app-scroll">
           <BriefingSheet
             briefing={ui.briefing}
@@ -423,6 +461,17 @@ export default function App(): React.JSX.Element {
             )}
           </div>
         </>
+      )}
+
+      {ui.activeSheet === 'guide' && (
+        <SheetContainer label="How to use DeskMate" onScrimClick={() => uiDispatch({ type: 'openSheet', sheet: null })}>
+          <GuideSheet
+            captureHotkey={settings?.hotkeyCapture ?? 'Control+Shift+Space'}
+            toggleHotkey={settings?.hotkeyToggle ?? 'Control+Shift+L'}
+            onReplayTour={() => uiDispatch({ type: 'openSheet', sheet: 'welcome' })}
+            onClose={() => uiDispatch({ type: 'openSheet', sheet: null })}
+          />
+        </SheetContainer>
       )}
 
       {ui.activeSheet === 'legend' && (

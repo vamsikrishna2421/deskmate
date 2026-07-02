@@ -48,10 +48,35 @@ export class Updater {
     if (this.timer) clearInterval(this.timer)
   }
 
-  /** Manual check from the tray. */
-  check(): void {
-    if (!app.isPackaged) return
-    void autoUpdater.checkForUpdates().catch(() => undefined)
+  /** Check for updates. A MANUAL check (tray) always answers — silence reads as broken. */
+  check(manual = false): void {
+    if (!app.isPackaged) {
+      if (manual) this.deps.notify({ title: 'DeskMate', body: 'Update checks only work in the installed app.' })
+      return
+    }
+    void autoUpdater
+      .checkForUpdates()
+      .then((result) => {
+        if (!manual) return
+        if (this.readyVersionValue) {
+          this.deps.notify({
+            title: 'DeskMate',
+            body: `DeskMate ${this.readyVersionValue} is ready — use "Restart to update" in the tray.`
+          })
+          return
+        }
+        const latest = result?.updateInfo?.version
+        if (latest && latest !== app.getVersion()) {
+          this.deps.notify({ title: 'DeskMate', body: `Downloading DeskMate ${latest} in the background…` })
+        } else {
+          this.deps.notify({ title: 'DeskMate', body: `You're on the latest version (${app.getVersion()}).` })
+        }
+      })
+      .catch(() => {
+        if (manual) {
+          this.deps.notify({ title: 'DeskMate', body: "Couldn't reach GitHub to check for updates." })
+        }
+      })
   }
 
   readyVersion(): string | undefined {

@@ -181,7 +181,7 @@ function bootstrap(): void {
       onToggleWindow: () => windowMgr.toggle(),
       onOpen: () => windowMgr.show(),
       onQuickCapture: () => captureMgr.show(),
-      onCheckUpdates: () => updater.check(),
+      onCheckUpdates: () => updater.check(true),
       onInstallUpdate: () => updater.quitAndInstall(),
       onBriefing: () => {
         windowMgr.show()

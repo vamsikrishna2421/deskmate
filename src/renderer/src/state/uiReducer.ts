@@ -8,7 +8,7 @@ export type TaskViewId = 'today' | 'week' | 'later' | 'done'
 /** 'snippets' is the Desk vault — a different surface sharing the tab row. */
 export type ViewId = TaskViewId | 'snippets'
 
-export type SheetId = 'briefing' | 'legend' | 'settings'
+export type SheetId = 'briefing' | 'legend' | 'settings' | 'guide' | 'welcome'
 
 /** Closed legend vocabulary usable as a live list filter (DESIGN §10). */
 export type LegendFilterId =

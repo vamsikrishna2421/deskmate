@@ -26,8 +26,11 @@ export interface IpcSchema {
   'ollama:status': { req: void; res: OllamaStatus }
   'ollama:retry': { req: void; res: OllamaStatus }
   'settings:get': { req: void; res: AppState }
-  /** coachMarksSeen rides along so one-time coach-mark dismissals persist across launches. */
-  'settings:update': { req: Partial<Settings> & { coachMarksSeen?: string[] }; res: AppState }
+  /** coachMarksSeen / onboardingDone ride along so one-time teaching persists across launches. */
+  'settings:update': {
+    req: Partial<Settings> & { coachMarksSeen?: string[]; onboardingDone?: boolean }
+    res: AppState
+  }
   'window:pin': { req: { onTop: boolean }; res: void }
   'window:shade': { req: { on: boolean }; res: void }
   'window:minimize': { req: void; res: void }

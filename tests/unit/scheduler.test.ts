@@ -35,6 +35,8 @@ async function makeCtx(clock = new Date(2026, 6, 2, 9, 0)): Promise<Ctx> {
   const dir = await mkdtemp(join(tmpdir(), 'sill-sched-'))
   const tasksRepo = await TasksRepo.load(dir)
   const appStateRepo = await AppStateRepo.load(dir)
+  // These suites exercise post-onboarding behavior; the tour holds the briefing until done.
+  appStateRepo.update({ onboardingDone: true })
   const ctx: Ctx = {
     dir,
     tasksRepo,
@@ -255,5 +257,17 @@ describe('the calm contract', () => {
     addHardTask(ctx, 'Past thing', '2026-07-02', '12:00')
     ctx.scheduler.onAppEvent('focus')
     expect(ctx.notices).toHaveLength(0)
+  })
+})
+
+describe('onboarding gate', () => {
+  it('holds the briefing until the welcome tour is done', async () => {
+    const ctx = await makeCtx(new Date(2026, 6, 2, 9, 0))
+    ctx.appStateRepo.update({ onboardingDone: false })
+    ctx.scheduler.onAppEvent('focus')
+    expect(ctx.briefings).toHaveLength(0)
+    ctx.appStateRepo.update({ onboardingDone: true })
+    ctx.scheduler.onAppEvent('focus')
+    expect(ctx.briefings).toHaveLength(1)
   })
 })

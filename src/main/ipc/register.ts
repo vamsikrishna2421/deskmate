@@ -202,12 +202,13 @@ function loopbackBaseUrl(v: string): string {
 function sanitizeSettings(
   raw: unknown,
   current: AppState
-): Partial<Settings> & { coachMarksSeen?: string[] } {
+): Partial<Settings> & { coachMarksSeen?: string[]; onboardingDone?: boolean } {
   const r = obj(raw, 'settings')
-  const patch: Partial<Settings> & { coachMarksSeen?: string[] } = {}
+  const patch: Partial<Settings> & { coachMarksSeen?: string[]; onboardingDone?: boolean } = {}
   if (r.coachMarksSeen !== undefined) {
     patch.coachMarksSeen = strArray(r.coachMarksSeen, 64, 64, 'coachMarksSeen')
   }
+  if (r.onboardingDone !== undefined) patch.onboardingDone = bool(r.onboardingDone, 'onboardingDone')
   if (r.theme !== undefined) patch.theme = oneOf(r.theme, ['system', 'light', 'dark'] as const, 'theme')
   if (r.launchAtLogin !== undefined) patch.launchAtLogin = bool(r.launchAtLogin, 'launchAtLogin')
   if (r.startHidden !== undefined) patch.startHidden = bool(r.startHidden, 'startHidden')

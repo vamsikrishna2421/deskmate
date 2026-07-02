@@ -52,6 +52,8 @@ export interface AppState extends Settings {
   alwaysOnTop: boolean
   /** Coach marks shown once per glyph — progressive legend teaching. */
   coachMarksSeen: string[]
+  /** First-launch welcome tour completed (or skipped) — never auto-shows again. */
+  onboardingDone: boolean
 }
 
 export interface OllamaStatus {

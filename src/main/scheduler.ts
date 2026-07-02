@@ -103,6 +103,8 @@ export class Scheduler {
   private checkBriefing(now: Date, kind: 'tick' | 'event'): void {
     if (now.getHours() < BRIEFING_HOUR_GATE) return
     const state = this.deps.appStateRepo.get()
+    // The welcome tour owns the very first launch — the briefing waits its turn.
+    if (!state.onboardingDone) return
     const dateKey = localDateKey(now)
     if (state.lastBriefingDate === dateKey) return
     if (this.pendingOfferDate === dateKey) return

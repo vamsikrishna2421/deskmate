@@ -62,10 +62,27 @@ export type TitleBarMenuAction =
   | 'legend'
   | 'settings'
   | 'briefing'
+  | 'guide'
   | 'pauseAssistant'
   | 'resumeAssistant'
   | 'moveWindow'
   | 'quit'
+
+/** First-launch interactive tour (App shows it while !onboardingDone). */
+export interface WelcomeTourProps {
+  captureHotkey: string
+  toggleHotkey: string
+  /** Finish or skip; withSample captures a canned manager message so enrichment runs live. */
+  onFinish(withSample: boolean): void
+}
+
+/** Always-available how-to (··· menu / F1). */
+export interface GuideSheetProps {
+  captureHotkey: string
+  toggleHotkey: string
+  onReplayTour(): void
+  onClose(): void
+}
 
 /** DESIGN §3 header (40px, drag region): glyph · view title · `+` capture, pin, `···`,
  *  minimize, close — 28×28 hit targets marked .no-drag. Double-click background → shade.

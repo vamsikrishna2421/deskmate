@@ -41,9 +41,19 @@ try {
   step('windows', pages.length >= 1, `found ${pages.length} windows`)
 
   await companion.waitForSelector('.app-shell, [class*="app"]', { timeout: 15000 })
-  // The window reveals on ui:ready and the briefing fires on its first focus — wait for it.
+  // Fresh userData → the welcome tour greets first; capture it, then skip.
+  const tour = await companion
+    .waitForSelector('text=Skip the tour', { timeout: 8000 })
+    .catch(() => null)
+  if (tour) {
+    await companion.screenshot({ path: join(shotDir, '00-welcome-tour.png') })
+    await companion.locator('text=Skip the tour').click()
+    await new Promise((r) => setTimeout(r, 400))
+  }
+  // The briefing fires on the next focus after onboarding — poke and wait briefly.
+  await companion.locator('.app-shell').click().catch(() => undefined)
   await companion
-    .waitForSelector('text=Start the day', { timeout: 10000 })
+    .waitForSelector('text=Start the day', { timeout: 8000 })
     .catch(() => undefined)
   await new Promise((r) => setTimeout(r, 800))
   await companion.screenshot({ path: join(shotDir, '01-launch.png') })

@@ -23,6 +23,10 @@ try {
   if (!page) throw new Error('companion window not found')
   await page.waitForSelector('.app-shell', { timeout: 15000 })
   await new Promise((r) => setTimeout(r, 600))
+  if ((await page.locator('text=Skip the tour').count()) > 0) {
+    await page.locator('text=Skip the tour').click()
+    await new Promise((r) => setTimeout(r, 400))
+  }
   if ((await page.locator('text=Start the day').count()) > 0) {
     await page.keyboard.press('Enter')
     await new Promise((r) => setTimeout(r, 500))

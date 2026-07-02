@@ -28,7 +28,8 @@ function makeDefaults(): AppState {
     privateToScreenShare: true,
     ollama: { baseUrl: OLLAMA_DEFAULT_BASE_URL, preferredModels: [...PREFERRED_MODELS], paused: false },
     alwaysOnTop: false,
-    coachMarksSeen: []
+    coachMarksSeen: [],
+    onboardingDone: false
   }
 }
 
@@ -92,6 +93,7 @@ function mergeLoaded(defaults: AppState, doc: Record<string, unknown>): AppState
   state.coachMarksSeen = Array.isArray(partial.coachMarksSeen)
     ? partial.coachMarksSeen.filter((m): m is string => typeof m === 'string')
     : []
+  state.onboardingDone = bool(partial.onboardingDone, defaults.onboardingDone)
   return state
 }
 

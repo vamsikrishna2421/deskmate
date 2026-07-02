@@ -54,6 +54,9 @@ npm run dev        # live-reload development
 npm run package    # build the Windows installer into release/
 ```
 
+First launch opens a short interactive tour; press `F1` (or ··· → "How to use DeskMate")
+for the guide any time.
+
 ## Keyboard map
 
 | Key | Action |
