@@ -28,6 +28,8 @@ function makeDefaults(): AppState {
     privateToScreenShare: true,
     captureClipboardPrefill: true,
     ollama: { baseUrl: OLLAMA_DEFAULT_BASE_URL, preferredModels: [...PREFERRED_MODELS], paused: false },
+    assistantProvider: 'ollama',
+    openaiApiKeyEnc: '',
     alwaysOnTop: false,
     coachMarksSeen: [],
     onboardingDone: false
@@ -96,6 +98,8 @@ function mergeLoaded(defaults: AppState, doc: Record<string, unknown>): AppState
     ? partial.coachMarksSeen.filter((m): m is string => typeof m === 'string')
     : []
   state.onboardingDone = bool(partial.onboardingDone, defaults.onboardingDone)
+  state.assistantProvider = partial.assistantProvider === 'openai' ? 'openai' : 'ollama'
+  state.openaiApiKeyEnc = typeof partial.openaiApiKeyEnc === 'string' ? partial.openaiApiKeyEnc : ''
   return state
 }
 

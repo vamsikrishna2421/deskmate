@@ -36,7 +36,8 @@ try {
   for (const p of pages) {
     const url = p.url()
     if (url.includes('capture')) capturePage = p
-    else companion = p
+    else if (url.includes('index.html')) companion = p
+    // bubble.html is neither — never let it claim the companion slot
   }
   step('windows', pages.length >= 1, `found ${pages.length} windows`)
 
@@ -99,10 +100,13 @@ try {
   const taskCount = await companion.evaluate(() =>
     window.loops.invoke('tasks:list', undefined).then((t) => t.length)
   )
+  const statuses = await companion.evaluate(() =>
+    window.loops.invoke('tasks:list', undefined).then((t) => t.map((x) => x.enrichment.status).join(','))
+  )
   step(
     'enrichment',
     enriched && taskCount >= 1,
-    `tasks after enrichment: ${taskCount} (2 expected from multi-ask; 1 = model merged the asks — model variance, not an app bug)`
+    `tasks after enrichment: ${taskCount}, statuses: ${statuses} (2 expected from multi-ask; 1 = model merged the asks — model variance, not an app bug)`
   )
 
   // Quick-capture window: created ~2.5s after launch (off the cold-start path) — find it now.
@@ -182,22 +186,37 @@ try {
   await companion.keyboard.press('1')
   step('views', true)
 
-  // Expanded card: go to a view that has cards (Week holds the vendor-spend task).
-  await companion.keyboard.press('2')
-  await new Promise((r) => setTimeout(r, 400))
-  const anyCard = companion.locator('.card').first()
-  await anyCard.click({ timeout: 10000 })
-  await new Promise((r) => setTimeout(r, 500))
-  await companion.screenshot({ path: join(shotDir, '10-expanded.png') })
-  await companion.keyboard.press('Escape')
-  step('expanded-card', true)
+  // Expanded card: find any view holding a card (routing varies with model output).
+  try {
+    let opened = false
+    for (const key of ['1', '2', '3']) {
+      await companion.keyboard.press(key)
+      await new Promise((r) => setTimeout(r, 400))
+      const anyCard = companion.locator('.card').first()
+      if (await anyCard.count()) {
+        await anyCard.click({ timeout: 5000 })
+        await new Promise((r) => setTimeout(r, 500))
+        await companion.screenshot({ path: join(shotDir, '10-expanded.png') })
+        await companion.keyboard.press('Escape')
+        opened = true
+        break
+      }
+    }
+    step('expanded-card', opened, opened ? '' : 'no card found in Today/Week/Later')
+  } catch (err) {
+    step('expanded-card', false, String(err).slice(0, 160))
+  }
 
-  // Dark theme.
-  await companion.evaluate(() => window.loops.invoke('settings:update', { theme: 'dark' }))
-  await new Promise((r) => setTimeout(r, 700))
-  await companion.screenshot({ path: join(shotDir, '11-dark.png') })
-  await companion.evaluate(() => window.loops.invoke('settings:update', { theme: 'light' }))
-  step('dark-theme', true)
+  // Light theme (dark is the default since 1.1.0).
+  try {
+    await companion.evaluate(() => window.loops.invoke('settings:update', { theme: 'light' }))
+    await new Promise((r) => setTimeout(r, 700))
+    await companion.screenshot({ path: join(shotDir, '11-light.png') })
+    await companion.evaluate(() => window.loops.invoke('settings:update', { theme: 'dark' }))
+    step('light-theme', true)
+  } catch (err) {
+    step('light-theme', false, String(err).slice(0, 160))
+  }
 
   // Resource budgets (DESIGN §3: idle <1% CPU, <200MB RAM — sampled, not idle-strict here).
   const metrics = await app.evaluate(({ app: a }) => a.getAppMetrics())

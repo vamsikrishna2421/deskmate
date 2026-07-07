@@ -1,6 +1,6 @@
 /** Binds every IpcSchema channel via ipcMain.handle. Every payload is validated and clamped at
  *  this boundary, and every request's sender frame is verified against our two known pages. */
-import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
+import { app, dialog, ipcMain, nativeTheme, safeStorage, shell } from 'electron'
 import type { IpcMainInvokeEvent } from 'electron'
 import { promises as fs } from 'node:fs'
 import { join } from 'node:path'
@@ -15,7 +15,7 @@ import type { TasksRepo } from '../store/tasksRepo'
 import type { AppStateRepo } from '../store/appStateRepo'
 import type { SnippetsRepo } from '../store/snippetsRepo'
 import type { SnippetKind, SnippetPatch } from '@shared/types/snippet'
-import type { OllamaClient } from '../llm/ollamaClient'
+import type { LlmRouter } from '../llm/router'
 import type { RequestQueue } from '../llm/requestQueue'
 import type { EnrichmentPipeline } from '../enrichment/pipeline'
 import type { Scheduler } from '../scheduler'
@@ -30,7 +30,7 @@ export interface IpcDeps {
   tasksRepo: TasksRepo
   appStateRepo: AppStateRepo
   snippetsRepo: SnippetsRepo
-  client: OllamaClient
+  client: LlmRouter
   queue: RequestQueue
   pipeline: EnrichmentPipeline
   scheduler: Scheduler
@@ -236,7 +236,20 @@ function sanitizeSettings(
     if (o.paused !== undefined) merged.paused = bool(o.paused, 'ollama.paused')
     patch.ollama = merged
   }
+  if (r.assistantProvider !== undefined) {
+    patch.assistantProvider = oneOf(r.assistantProvider, ['ollama', 'openai'] as const, 'assistantProvider')
+  }
+  // The encrypted key has exactly one write path (assistant:setApiKey) — reject side doors.
+  if (r.openaiApiKeyEnc !== undefined) {
+    fail('openaiApiKeyEnc cannot be set via settings:update — use assistant:setApiKey')
+  }
   return patch
+}
+
+/** The encrypted OpenAI key never crosses to the renderer; presence rides
+ *  OllamaStatus.remoteConfigured instead. */
+export function redactState(state: AppState): AppState {
+  return { ...state, openaiApiKeyEnc: '' }
 }
 
 // ── Sender-frame trust ────────────────────────────────────────────────────────
@@ -273,7 +286,9 @@ export function registerIpc(deps: IpcDeps): void {
   const ollamaStatus = (): OllamaStatus => ({
     ...deps.client.status(),
     queued: deps.queue.size(),
-    paused: deps.appStateRepo.get().ollama.paused
+    paused: deps.appStateRepo.get().ollama.paused,
+    provider: deps.appStateRepo.get().assistantProvider,
+    remoteConfigured: deps.appStateRepo.get().openaiApiKeyEnc.length > 0
   })
   const captureTask = (sourceText: string, sourceKind: 'paste' | 'typed', hints?: CaptureHints) => {
     const task = deps.tasksRepo.createFromCapture({ sourceText, sourceKind, hints }, now())
@@ -342,6 +357,22 @@ export function registerIpc(deps: IpcDeps): void {
     deps.scheduler.deferBriefing(dateKey(obj(raw, 'briefing:defer').dateKey))
   })
 
+  bind('assistant:setApiKey', (raw) => {
+    const r = obj(raw, 'assistant:setApiKey')
+    if (typeof r.key !== 'string') fail('key must be a string')
+    const key = r.key.trim()
+    if (key.length > 400) fail('key is too long')
+    if (key.length === 0) {
+      deps.appStateRepo.update({ openaiApiKeyEnc: '' })
+    } else {
+      if (!safeStorage.isEncryptionAvailable()) {
+        fail('secure storage is unavailable on this machine — the key cannot be saved')
+      }
+      deps.appStateRepo.update({ openaiApiKeyEnc: safeStorage.encryptString(key).toString('base64') })
+    }
+    void deps.client.health()
+    return ollamaStatus()
+  })
   bind('ollama:status', () => ollamaStatus())
   bind('ollama:retry', async () => {
     await deps.client.health()
@@ -349,8 +380,8 @@ export function registerIpc(deps: IpcDeps): void {
     return ollamaStatus()
   })
 
-  bind('settings:get', () => deps.appStateRepo.get())
-  bind('settings:update', (raw) => applySettingsUpdate(deps, raw))
+  bind('settings:get', () => redactState(deps.appStateRepo.get()))
+  bind('settings:update', (raw) => redactState(applySettingsUpdate(deps, raw)))
 
   bind('window:pin', (raw) => {
     const onTop = bool(obj(raw, 'window:pin').onTop, 'onTop')
@@ -459,6 +490,11 @@ function applySettingsUpdate(deps: IpcDeps, raw: unknown): AppState {
   if (patch.ollama !== undefined && patch.ollama.paused !== current.ollama.paused) {
     deps.pipeline.setPaused(patch.ollama.paused)
   }
+  if (patch.assistantProvider !== undefined && patch.assistantProvider !== current.assistantProvider) {
+    // New brain: re-check its health and give failed/skipped cards to it right away.
+    deps.client.providerChanged()
+    deps.pipeline.retryAllFailed()
+  }
   return next
 }
 
@@ -476,7 +512,7 @@ async function exportAll(deps: IpcDeps): Promise<{ path: string } | { canceled: 
     version: app.getVersion(),
     exportedAt: new Date().toISOString(),
     tasks: deps.tasksRepo.list(),
-    settings: deps.appStateRepo.get()
+    settings: redactState(deps.appStateRepo.get())
   }
   await fs.writeFile(result.filePath, JSON.stringify(doc, null, 2), 'utf8')
   return { path: result.filePath }

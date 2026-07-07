@@ -15,7 +15,8 @@ import { coerceBriefing, coerceExtraction, coerceSingleTask } from '@shared/llm/
 import { deadlineNeedsReview } from '@shared/llm/mapLlm'
 import type { TasksRepo } from '../store/tasksRepo'
 import type { AppStateRepo } from '../store/appStateRepo'
-import { OllamaError, type OllamaClient } from '../llm/ollamaClient'
+import { OllamaError } from '../llm/ollamaClient'
+import type { LlmClient } from '../llm/router'
 import type { JobLane, RequestQueue } from '../llm/requestQueue'
 import {
   BRIEFING_FORMAT,
@@ -33,7 +34,7 @@ import {
 export interface PipelineDeps {
   tasksRepo: TasksRepo
   appStateRepo: AppStateRepo
-  client: OllamaClient
+  client: LlmClient
   queue: RequestQueue
   pushEnrichment: (p: {
     taskId: string

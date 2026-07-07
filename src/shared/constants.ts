@@ -25,14 +25,22 @@ export const OLLAMA_DEFAULT_BASE_URL = 'http://localhost:11434'
 export const PREFERRED_MODELS = ['qwen2.5:3b', 'qwen2.5:1.5b', 'gemma2:2b'] as const
 export const OLLAMA_KEEP_ALIVE = '30m'
 export const OLLAMA_NUM_CTX = 8192
+/** Timeouts sized for slow hardware: a laptop running qwen2.5:3b at ~15 tok/s needs ~25–45s
+ *  for a multi-task extraction — the original 30s cap timed out mid-answer on such machines. */
 export const LLM_OPTIONS = {
-  extraction: { temperature: 0.15, num_predict: 800, timeoutMs: 30_000 },
-  extractionRetry: { temperature: 0, num_predict: 800, timeoutMs: 30_000 },
-  reenrich: { temperature: 0.15, num_predict: 500, timeoutMs: 30_000 },
-  briefing: { temperature: 0.3, num_predict: 160, timeoutMs: 15_000 }
+  extraction: { temperature: 0.15, num_predict: 800, timeoutMs: 90_000 },
+  extractionRetry: { temperature: 0, num_predict: 800, timeoutMs: 90_000 },
+  reenrich: { temperature: 0.15, num_predict: 500, timeoutMs: 60_000 },
+  briefing: { temperature: 0.3, num_predict: 160, timeoutMs: 20_000 }
 } as const
 export const OLLAMA_HEALTH_TIMEOUT_MS = 2_000
 export const OLLAMA_RESPONSE_MAX_BYTES = 256 * 1024
+
+// ── OpenAI (optional remote assistant) ───────────────────────────────────────
+export const OPENAI_BASE_URL = 'https://api.openai.com'
+/** Pinned to the cheapest model by owner's rule — never expose a pricier pick in the UI. */
+export const OPENAI_MODEL = 'gpt-5-nano'
+export const OPENAI_HEALTH_TIMEOUT_MS = 5_000
 
 // ── Scheduler / reminders ─────────────────────────────────────────────────────
 export const SCHEDULER_TICK_MS = 60_000

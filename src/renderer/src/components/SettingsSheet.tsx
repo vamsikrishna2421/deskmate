@@ -1,7 +1,9 @@
-/** DESIGN §11 settings sheet. All writes go through onUpdate(Partial<Settings>);
- *  base URL edits are validated loopback-only here (and again in main). */
+/** DESIGN §11 settings sheet. All writes go through onUpdate(Partial<Settings>) except the
+ *  OpenAI key, which rides its own one-way channel (assistant:setApiKey) so the secret never
+ *  lives in settings state. Base URL edits are validated loopback-only here (and again in main). */
 
 import { useEffect, useRef, useState } from 'react'
+import { invoke } from '../lib/api'
 import type { Settings, SettingsSheetProps } from './props'
 
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1'])
@@ -79,6 +81,23 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
   const [baseUrl, setBaseUrl] = useState(settings.ollama.baseUrl)
   const [urlError, setUrlError] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
+  const [apiKey, setApiKey] = useState('')
+  const [keySaved, setKeySaved] = useState(false)
+
+  /** One-way: the key goes to main for DPAPI encryption and is never readable back. */
+  const saveApiKey = (): void => {
+    const key = apiKey.trim()
+    if (!key) return
+    void invoke('assistant:setApiKey', { key }).then(() => {
+      setApiKey('')
+      setKeySaved(true)
+      window.setTimeout(() => setKeySaved(false), 1800)
+    })
+  }
+
+  const removeApiKey = (): void => {
+    void invoke('assistant:setApiKey', { key: '' })
+  }
 
   useEffect(() => {
     rootRef.current?.querySelector<HTMLElement>('input, button.sheetbody__close')?.focus()
@@ -102,12 +121,19 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
   const chosen = settings.ollama.selectedModel ?? ollama.activeModel
 
   const paused = settings.ollama.paused
+  const remote = settings.assistantProvider === 'openai'
   const healthDot = paused || !ollama.reachable ? 'dot dot--hollow' : ollama.queued > 0 ? 'dot dot--pulse pulse' : 'dot dot--ready'
   const healthText = paused
     ? 'Assistant is paused'
-    : ollama.reachable
-      ? `${ollama.activeModel ?? 'no model installed'} · ${ollama.queued > 0 ? 'working' : 'ready'}`
-      : `Ollama isn't reachable at ${settings.ollama.baseUrl.replace(/^https?:\/\//, '')}`
+    : remote
+      ? ollama.remoteConfigured
+        ? ollama.reachable
+          ? `gpt-5-nano (cloud) · ${ollama.queued > 0 ? 'working' : 'ready'}`
+          : "OpenAI isn't reachable — check the key or your connection"
+        : 'Paste your OpenAI API key below to turn this on'
+      : ollama.reachable
+        ? `${ollama.activeModel ?? 'no model installed'} · ${ollama.queued > 0 ? 'working' : 'ready'}`
+        : `Ollama isn't reachable at ${settings.ollama.baseUrl.replace(/^https?:\/\//, '')}`
 
   return (
     <div
@@ -209,15 +235,72 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
 
       <section className="settings__section">
         <h3 className="settings__heading">Assistant</h3>
+        <div className="settings__row" role="radiogroup" aria-label="Where the assistant runs">
+          <span className="settings__label">Runs</span>
+          <div className="editor__segments">
+            {(
+              [
+                ['ollama', 'On this machine'],
+                ['openai', 'OpenAI cloud']
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={settings.assistantProvider === value}
+                className={`editor__segment${settings.assistantProvider === value ? ' editor__segment--active' : ''}`}
+                onClick={() => props.onUpdate({ assistantProvider: value })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="settings__row">
           <span className={healthDot} aria-hidden="true" />
           <span className="settings__health">{healthText}</span>
-          {!ollama.reachable && !paused && (
+          {!ollama.reachable && !paused && (remote ? ollama.remoteConfigured : true) && (
             <button type="button" className="ghost" onClick={props.onRetryOllama}>
               Retry
             </button>
           )}
         </div>
+        {remote && (
+          <>
+            <div className="settings__row">
+              <span className="settings__label">API key</span>
+              <input
+                type="password"
+                className="settings__url"
+                value={apiKey}
+                spellCheck={false}
+                placeholder={ollama.remoteConfigured ? 'saved — paste a new key to replace' : 'sk-…'}
+                aria-label="OpenAI API key"
+                onChange={(e) => setApiKey(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    saveApiKey()
+                  }
+                }}
+              />
+              <button type="button" className="ghost" disabled={apiKey.trim().length === 0} onClick={saveApiKey}>
+                {keySaved ? 'Saved ✓' : 'Save'}
+              </button>
+              {ollama.remoteConfigured && apiKey.trim().length === 0 && (
+                <button type="button" className="ghost" onClick={removeApiKey}>
+                  Remove key
+                </button>
+              )}
+            </div>
+            <p className="settings__note">
+              Captured messages are sent to OpenAI while this is on. The key is encrypted on this
+              machine and only gpt-5-nano — the cheapest model — is ever used.
+            </p>
+          </>
+        )}
+        {!remote && (
         <div className="settings__models" role="radiogroup" aria-label="Model">
           {models.map((m) => {
             const installed = ollama.models.includes(m)
@@ -254,6 +337,7 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
             )
           })}
         </div>
+        )}
         <label className="settings__row settings__row--toggle">
           <span className="settings__label">Pause assistant</span>
           <input
@@ -262,27 +346,31 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
             onChange={(e) => patchOllama({ paused: e.target.checked })}
           />
         </label>
-        <label className="settings__row">
-          <span className="settings__label">Ollama address</span>
-          <input
-            type="text"
-            className={`settings__url${urlError ? ' settings__url--error' : ''}`}
-            value={baseUrl}
-            spellCheck={false}
-            onChange={(e) => {
-              setBaseUrl(e.target.value)
-              setUrlError(false)
-            }}
-            onBlur={commitBaseUrl}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                commitBaseUrl()
-              }
-            }}
-          />
-        </label>
-        {urlError && <p className="settings__error">Only a localhost address works — DeskMate never leaves this machine.</p>}
+        {!remote && (
+          <>
+            <label className="settings__row">
+              <span className="settings__label">Ollama address</span>
+              <input
+                type="text"
+                className={`settings__url${urlError ? ' settings__url--error' : ''}`}
+                value={baseUrl}
+                spellCheck={false}
+                onChange={(e) => {
+                  setBaseUrl(e.target.value)
+                  setUrlError(false)
+                }}
+                onBlur={commitBaseUrl}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    commitBaseUrl()
+                  }
+                }}
+              />
+            </label>
+            {urlError && <p className="settings__error">Only a localhost address works — the local assistant never leaves this machine.</p>}
+          </>
+        )}
       </section>
 
       <section className="settings__section">

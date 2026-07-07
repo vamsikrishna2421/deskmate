@@ -1,6 +1,6 @@
 /** Composition root: single-instance lock, lifecycle, repos, LLM stack, windows, tray,
  *  shortcuts, scheduler, IPC. 'window-all-closed' never quits — DeskMate lives in the tray. */
-import { app, dialog, nativeTheme, powerMonitor, session, shell } from 'electron'
+import { app, dialog, nativeTheme, powerMonitor, safeStorage, session, shell } from 'electron'
 import { join } from 'node:path'
 import { localDateKey } from '@shared/dates/dayMath'
 import type { Briefing } from '@shared/types/enrichment'
@@ -11,10 +11,12 @@ import { SnippetsRepo } from './store/snippetsRepo'
 import { fallbackSynthesis, renderBriefingDigest } from './briefing'
 import { Scheduler } from './scheduler'
 import { OllamaClient } from './llm/ollamaClient'
+import { OpenAiClient } from './llm/openaiClient'
+import { LlmRouter } from './llm/router'
 import { RequestQueue } from './llm/requestQueue'
 import { EnrichmentPipeline } from './enrichment/pipeline'
 import { initPush, push } from './ipc/push'
-import { registerIpc } from './ipc/register'
+import { redactState, registerIpc } from './ipc/register'
 import { MainWindowManager } from './windows/mainWindow'
 import { CaptureWindowManager } from './windows/captureWindow'
 import { BubbleWindowManager } from './windows/bubbleWindow'
@@ -46,6 +48,17 @@ let snippetsRepo: SnippetsRepo | undefined
 
 function e2eLog(evt: string, extra: Record<string, unknown> = {}): void {
   if (E2E) process.stdout.write(`${JSON.stringify({ evt, ...extra })}\n`)
+}
+
+/** '' when unset or undecryptable (e.g. data folder copied from another Windows account —
+ *  DPAPI keys are account-bound). The user just re-pastes the key in Settings. */
+function decryptOpenAiKey(enc: string): string {
+  if (!enc) return ''
+  try {
+    return safeStorage.decryptString(Buffer.from(enc, 'base64'))
+  } catch {
+    return ''
+  }
 }
 
 function flushRepos(): Promise<unknown> {
@@ -123,7 +136,9 @@ function bootstrap(): void {
     const settings = aRepo.get()
     nativeTheme.themeSource = settings.theme
 
-    const client = new OllamaClient(() => aRepo.get().ollama)
+    const ollamaClient = new OllamaClient(() => aRepo.get().ollama)
+    const openaiClient = new OpenAiClient(() => decryptOpenAiKey(aRepo.get().openaiApiKeyEnc))
+    const client = new LlmRouter(ollamaClient, openaiClient, () => aRepo.get().assistantProvider)
     const queue = new RequestQueue()
     const pipeline = new EnrichmentPipeline({
       tasksRepo: tRepo,
@@ -318,14 +333,16 @@ function bootstrap(): void {
     sRepo.onChange((list) => push('snippets:changed', list))
     tRepo.onTrashChange((entries) => push('tasks:trashChanged', entries))
     aRepo.onChange((state) => {
-      push('settings:changed', state)
+      push('settings:changed', redactState(state))
       updateTray()
     })
 
     const ollamaStatus = (): OllamaStatus => ({
       ...client.status(),
       queued: queue.size(),
-      paused: aRepo.get().ollama.paused
+      paused: aRepo.get().ollama.paused,
+      provider: aRepo.get().assistantProvider,
+      remoteConfigured: aRepo.get().openaiApiKeyEnc.length > 0
     })
     client.onStatusChange(() => {
       push('ollama:statusChanged', ollamaStatus())

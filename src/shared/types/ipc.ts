@@ -31,6 +31,9 @@ export interface IpcSchema {
   'briefing:defer': { req: { dateKey: string }; res: void }
   'ollama:status': { req: void; res: OllamaStatus }
   'ollama:retry': { req: void; res: OllamaStatus }
+  /** Stores the OpenAI key safeStorage-encrypted in main; '' clears it. The key is never
+   *  readable back over IPC — only OllamaStatus.remoteConfigured reflects presence. */
+  'assistant:setApiKey': { req: { key: string }; res: OllamaStatus }
   'settings:get': { req: void; res: AppState }
   /** coachMarksSeen / onboardingDone ride along so one-time teaching persists across launches. */
   'settings:update': {
@@ -128,6 +131,7 @@ export const IPC_CHANNELS: readonly IpcChannel[] = [
   'briefing:defer',
   'ollama:status',
   'ollama:retry',
+  'assistant:setApiKey',
   'settings:get',
   'settings:update',
   'window:pin',

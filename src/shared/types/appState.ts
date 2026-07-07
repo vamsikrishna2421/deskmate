@@ -18,6 +18,10 @@ export interface OllamaSettings {
   paused: boolean
 }
 
+/** Which brain enriches tasks. 'ollama' = on this machine (default, 100% offline).
+ *  'openai' = OPT-IN cloud assistant — captured message text leaves the machine. */
+export type AssistantProvider = 'ollama' | 'openai'
+
 export interface Settings {
   theme: 'system' | 'light' | 'dark'
   launchAtLogin: boolean
@@ -34,6 +38,12 @@ export interface Settings {
    *  the background): copy → hotkey → Enter. */
   captureClipboardPrefill: boolean
   ollama: OllamaSettings
+  /** Local by default; 'openai' is explicit opt-in from Settings → Assistant. */
+  assistantProvider: AssistantProvider
+  /** OpenAI API key, safeStorage(DPAPI)-encrypted, base64. '' = not configured.
+   *  NEVER crosses to the renderer — redacted to '' in settings:get/settings:changed;
+   *  presence is exposed as OllamaStatus.remoteConfigured. */
+  openaiApiKeyEnc: string
 }
 
 export interface BriefingDeferral {
@@ -65,4 +75,8 @@ export interface OllamaStatus {
   activeModel?: string
   queued: number
   paused: boolean
+  /** Active brain (Settings → Assistant). */
+  provider: AssistantProvider
+  /** True when an OpenAI API key is stored (the key itself never crosses IPC). */
+  remoteConfigured: boolean
 }
