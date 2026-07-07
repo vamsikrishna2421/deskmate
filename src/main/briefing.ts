@@ -124,12 +124,19 @@ export function renderBriefingDigest(b: Briefing): string {
   const status = clear
     ? 'STATUS: nothing overdue and nothing due today — a clear day.'
     : `STATUS: ${b.overdue.length} overdue, ${b.dueToday.length} due today.`
+  // Rough focused-work total so the model can close with "about three hours of focused
+  // work" — computed here, never by the model (intelligence review #9).
+  const workload =
+    b.effortTodayMinutes && b.effortTodayMinutes >= 60
+      ? `WORKLOAD: about ${Math.round(b.effortTodayMinutes / 30) / 2} hours of focused work due today.`
+      : null
   return [
     status,
     section('OVERDUE', b.overdue),
     section('DUE TODAY', b.dueToday),
     section('THIS WEEK', b.dueThisWeek),
-    section('STALLED', b.stalled)
+    section('STALLED', b.stalled),
+    workload
   ]
     .filter((s): s is string => s !== null)
     .join('\n')

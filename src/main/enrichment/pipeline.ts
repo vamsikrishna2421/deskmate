@@ -12,6 +12,7 @@ import {
   PASTE_TRIM_MARKER
 } from '@shared/constants'
 import { coerceBriefing, coerceExtraction, coerceSingleTask } from '@shared/llm/coerceParse'
+import { findImpossibleDatePhrases, guardImpossibleDates } from '@shared/llm/dateGuard'
 import { deadlineNeedsReview } from '@shared/llm/mapLlm'
 import type { TasksRepo } from '../store/tasksRepo'
 import type { AppStateRepo } from '../store/appStateRepo'
@@ -321,7 +322,11 @@ export class EnrichmentPipeline {
         this.deps.pushEnrichment({ taskId, status: 'done' })
         return
       }
-      this.applyExtraction(taskId, task, result.value, model, baseAttempts + attemptsUsed)
+      // Calendar validity is code's job, not a 3B model's (dateGuard.ts): a paste naming
+      // "June 31st" must never land as a confident wrong deadline.
+      const badDates = findImpossibleDatePhrases(user)
+      const guarded = badDates.length ? guardImpossibleDates(result.value, badDates) : result.value
+      this.applyExtraction(taskId, task, guarded, model, baseAttempts + attemptsUsed)
     } catch (err) {
       if (signal.aborted) return
       if (err instanceof OllamaError && err.kind === 'network') this.markSkipped(taskId, errorText(err))

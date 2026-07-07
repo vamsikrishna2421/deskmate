@@ -4,6 +4,24 @@ Validated against live Ollama 0.30.11 on 2026-07-02 (Windows 11).
 Models tested: `qwen2.5:3b` (primary), `gemma2:2b`, `qwen2.5:1.5b`.
 Every prompt below was iterated 3-5 times against real API calls; transcripts summarized in §8.
 
+> **2026-07-06 deltas (intelligence review, re-validated live at ~11–15 tok/s hardware; prompts.ts
+> is now the source of truth where it differs from §1/§5):**
+> 1. Clarifying questions bar softened from "blocks acting" to "would materially change what you
+>    do"; a second few-shot example (vague ping → 2 questions, chasing person → `medium`) woke
+>    them up — 0/6 probes asked questions before, the target cases ask now.
+> 2. Priority edges: a named person waiting/chasing overrides a nice-to-have hedge (min
+>    `medium`); a tentatively proposed sync is `soft`.
+> 3. Title hygiene: timing words and hedges are banned from titles.
+> 4. **Impossible dates cannot be prompt-fixed at 3B.** "Feb 30" obeys the few-shot; "June 31st"
+>    still laundered into a confident wrong token in live probes. The real guard is code:
+>    `shared/llm/dateGuard.ts` scans the paste for calendar-impossible phrases and clears the
+>    deadline + injects the clarifying question deterministically (same philosophy as §3).
+> 5. Briefing digest gains a `WORKLOAD:` line (code-computed hours; model may repeat, never compute).
+> 6. Timeouts raised 30s→90s (extraction) / 60s / 20s: at real-world ~11–15 tok/s a 3-task
+>    extraction takes 25–45s and the old 30s cap silently degraded it to a raw card.
+> 7. An opt-in OpenAI `gpt-5-nano` provider now sits behind the same pipeline (strict
+>    json_schema, reasoning_effort minimal); local Ollama remains the default.
+
 Proposed product name: **Loopkeeper** (the app's core mechanic is closing open loops).
 Alternates: Sidekick, Deskmate.
 

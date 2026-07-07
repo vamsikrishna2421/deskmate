@@ -1,5 +1,7 @@
-/** Final validated prompts + Ollama `format` schemas (docs/LLM_PIPELINE.md §1, §2, §4, §5 — verbatim,
- *  live-tested; do not reword). {{TODAY}} is rendered fresh per request from an injected Date. */
+/** Final validated prompts + Ollama `format` schemas (docs/LLM_PIPELINE.md §1, §2, §4, §5,
+ *  extended 2026-07-06 per the intelligence review: question triggers, impossible-date guard,
+ *  priority edge rules, title hygiene — each delta re-validated with live probes; do not
+ *  reword casually). {{TODAY}} is rendered fresh per request from an injected Date. */
 
 import type { Deadline, Effort, Priority, Task } from '@shared/types/task'
 import type { LlmTaskRaw } from '@shared/types/enrichment'
@@ -22,7 +24,7 @@ Extract every distinct actionable task assigned to or implied for the user. Outp
 
 FIELD RULES
 
-title: short imperative phrase, max 60 characters, starting with a verb. Include the key object and recipient if any (e.g. "Send top-20 vendor list to Sarah").
+title: short imperative phrase, max 60 characters, starting with a verb. Include the key object and recipient if any (e.g. "Send top-20 vendor list to Sarah"). Never put timing words or hedges in the title ("by EOW", "for Wednesday", "if you have time") — timing belongs in deadline, hedges in priority.
 
 summary: one sentence of context taken ONLY from the message: who asked, why, what "done" looks like. Never add reasons, meetings, dates, or people that the message does not mention. If the message is one short line, the summary just restates it.
 
@@ -36,14 +38,15 @@ deadline: exactly one token —
 - a date "YYYY-MM-DD" ONLY if the message states that explicit calendar date
 Never compute dates yourself. When the message names a weekday, output the weekday token, never "today"/"tomorrow". "EOD" / "end of day" alone means "today". "EOW" / "end of week" means "friday".
 Each task's deadline comes only from timing words attached to THAT ask; never copy a deadline from another task in the same message. "at some point", "when things quiet down", "someday" -> "none".
+If a stated date is impossible or cannot be a real calendar date (e.g. "Feb 30", "the 32nd"), the deadline is exactly "none" with deadline_type "none" — never the broken date itself and never a guessed replacement day — and clarifying_questions must include one question asking for the real date.
 
 deadline_type:
 - "hard" = firm: "must", "need it by", "due", tied to a meeting/leadership review, or a P1 incident
-- "soft" = loose timing: "ideally", "sometime", "when you can", "no rush"
+- "soft" = loose timing: "ideally", "sometime", "when you can", "no rush". A tentatively proposed sync or meeting ("let's plan to sync next week") is "soft" unless a firm commitment or booked time is stated.
 - "none" = only when deadline is "none". If deadline is any other token, deadline_type must be "hard" or "soft".
 
 priority — apply the FIRST rule that matches:
-1. "optional" = the ask is hedged as nice-to-have: "if you have time", "spare cycles", "no rush", "when things quiet down", "maybe", "at some point", "much less urgent"
+1. "optional" = the ask is hedged as nice-to-have: "if you have time", "spare cycles", "no rush", "when things quiet down", "maybe", "at some point", "much less urgent". EXCEPTION: if a specific named person is waiting for or chasing the result, a hedge never makes it optional — use at least "medium".
 2. "high" = P1/urgent, blocking someone, leadership-visible, or hard deadline today/tomorrow
 3. "medium" = any other ask with a stated deadline, or a specific named person is waiting to receive the result
 4. "low" = everything else: undated follow-ups, FYI reviews
@@ -54,16 +57,20 @@ subtasks: 2-5 short steps ONLY when the message itself spells out steps or an or
 
 tags: 1-3 lowercase topic tags, e.g. ["dashboard","finance"].
 
-clarifying_questions: 0-3 short questions ONLY about missing information that blocks acting (which report? send to whom? which quarter?). If the user can act without asking, use []. Never ask about the deadline when one is stated. Never ask questions the message already answers.
+clarifying_questions: 0-3 short questions about missing information that would materially change what the user does or delivers (which report? send to whom? which quarter? what exactly looks wrong?). A vague ask ("something feels off", "the usual numbers") deserves a question. If the message is specific enough to act on confidently, use []. Never ask about the deadline when one is stated. Never ask questions the message already answers.
 
 OTHER RULES
 - One task per distinct ask. A message with several asks yields several tasks, in the order they appear.
 - Keep an optional side ask as its own separate task; never merge it into the main task.
 - A pure FYI with no ask becomes ONE task titled "Review impact of ..." (assess what it means for the user's work), priority "low".
 
-EXAMPLE (format calibration only — never copy its content)
+EXAMPLES (format calibration only — never copy their content)
 Message: "Need the churn numbers rebuilt by Tuesday for the VP readout, that's a must. And whenever you're bored, the team wiki could use a tidy-up."
-Output: {"tasks":[{"title":"Rebuild churn numbers for VP readout","summary":"Rebuild the churn numbers by Tuesday; they feed the VP readout.","deadline":"tuesday","deadline_type":"hard","priority":"high","effort":"half-day","subtasks":[],"tags":["churn","reporting"],"clarifying_questions":[]},{"title":"Tidy up the team wiki","summary":"Nice-to-have wiki cleanup for whenever there is spare time.","deadline":"none","deadline_type":"none","priority":"optional","effort":"1hour","subtasks":[],"tags":["wiki"],"clarifying_questions":[]}]}`
+Output: {"tasks":[{"title":"Rebuild churn numbers for VP readout","summary":"Rebuild the churn numbers by Tuesday; they feed the VP readout.","deadline":"tuesday","deadline_type":"hard","priority":"high","effort":"half-day","subtasks":[],"tags":["churn","reporting"],"clarifying_questions":[]},{"title":"Tidy up the team wiki","summary":"Nice-to-have wiki cleanup for whenever there is spare time.","deadline":"none","deadline_type":"none","priority":"optional","effort":"1hour","subtasks":[],"tags":["wiki"],"clarifying_questions":[]}]}
+Message: "Something feels off in the weekly numbers, can you take a look when you get a sec? Priya keeps asking about it."
+Output: {"tasks":[{"title":"Investigate the weekly numbers issue","summary":"Something looks off in the weekly numbers and Priya has been asking about it.","deadline":"none","deadline_type":"none","priority":"medium","effort":"1hour","subtasks":[],"tags":["reporting"],"clarifying_questions":["Which weekly report looks off?","What specifically seems wrong with the numbers?"]}]}
+Message: "Finance needs the vendor recon locked by Feb 30, that's firm."
+Output: {"tasks":[{"title":"Lock the vendor recon for finance","summary":"Finance wants the vendor recon locked; the stated date does not exist on the calendar.","deadline":"none","deadline_type":"none","priority":"medium","effort":"half-day","subtasks":[],"tags":["finance","vendors"],"clarifying_questions":["Feb 30 isn't a real date — when is the recon actually due?"]}]}`
 
 export function extractionSystemPrompt(today: Date): string {
   return EXTRACTION_TEMPLATE.replace('{{TODAY}}', renderToday(today))
@@ -112,7 +119,8 @@ CONTENT RULES
 - Name every overdue and every due-today task (shortened titles are fine). Refer to groups in plain words like "this week", never as capitalized headings.
 - Mention a STALLED task at most once, phrased gently ("has been quiet for a while"); if there is no STALLED section, do not mention stalled work at all.
 - Shorten titles if you like, but NEVER invent tasks, counts, or deadlines, and NEVER move a task to a different group.
-- If the STATUS line says the day is clear, say so and suggest getting ahead on ONE named THIS WEEK task.`
+- If the STATUS line says the day is clear, say so and suggest getting ahead on ONE named THIS WEEK task.
+- If a WORKLOAD line is present, you may close with that rough figure in calm words ("about three hours of focused work"). Never compute or adjust hours yourself.`
 
 export function briefingSystemPrompt(today: Date): string {
   return BRIEFING_TEMPLATE.replace('{{TODAY}}', renderToday(today))
