@@ -7,3 +7,5 @@ release/
 .env
 .claude-flow/
 coverage/
+*.tsbuildinfo
+shots/
