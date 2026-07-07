@@ -9,3 +9,4 @@ release/
 coverage/
 *.tsbuildinfo
 shots/
+shots-quality/
