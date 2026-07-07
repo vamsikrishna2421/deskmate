@@ -25,8 +25,7 @@ html[data-theme='dark'] {
 }
 
 body {
-  /* The OS window is transparent (floating-card look) — the card paints its own canvas. */
-  background: transparent;
+  background: var(--canvas);
   color: var(--ink-1);
   overflow: hidden;
   user-select: none;
@@ -147,14 +146,10 @@ a {
 .app-shell {
   display: flex;
   flex-direction: column;
-  /* The card floats inside the transparent gutter and casts its shadow on the desktop. */
-  height: calc(100% - var(--float-gutter) * 2);
-  margin: var(--float-gutter);
+  height: 100%;
   background: var(--canvas);
-  border: 1px solid color-mix(in srgb, var(--ink-1) 14%, transparent);
   border-radius: var(--r-window);
   overflow: hidden;
-  box-shadow: var(--float-shadow);
 }
 .app-scroll {
   flex: 1;
@@ -165,10 +160,7 @@ a {
 }
 .sheet-scrim {
   position: fixed;
-  /* clip to the floating card, never the transparent gutter */
-  inset: var(--float-gutter);
-  border-radius: var(--r-window);
-  overflow: hidden;
+  inset: 0;
   background: rgba(38, 35, 32, 0.28);
   display: flex;
   align-items: flex-end;
@@ -247,17 +239,10 @@ a {
 }
 
 /* Single composed entrance — the shell fades in as one piece on reveal. */
-/* Launch: the card settles down onto the desk — lands from slightly above, shadow blooming. */
 .app-shell {
-  animation: shell-land var(--dur-sheet) var(--ease-enter);
+  animation: shell-in var(--dur-expand) var(--ease-enter);
 }
-@keyframes shell-land {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(1.01);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes shell-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

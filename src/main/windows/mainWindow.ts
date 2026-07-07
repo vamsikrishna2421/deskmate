@@ -1,11 +1,8 @@
-/** The frameless companion window (DESIGN.md §3): 384×560 content default, min 340×440, max
- *  width 560, close hides to tray, shade collapses to the header, pin = alwaysOnTop 'floating'.
- *  The window is TRANSPARENT and inflated by FLOAT_GUTTER on each side — the renderer draws
- *  the app as a rounded card whose shadow falls on the desktop (the floating look). Known
- *  Windows tradeoff: transparent frameless windows lose native edge-resize. */
+/** The frameless companion window (DESIGN.md §3): 384×560 default, min 340×440, max width 560,
+ *  close hides to tray, shade collapses to the 48px header, pin = alwaysOnTop 'floating'. */
 import { app, BrowserWindow, screen } from 'electron'
 import { join } from 'node:path'
-import { FLOAT_GUTTER, MAIN_WINDOW, SHADED_HEIGHT } from '@shared/constants'
+import { MAIN_WINDOW, SHADED_HEIGHT } from '@shared/constants'
 import type { AppStateRepo } from '../store/appStateRepo'
 import { push } from '../ipc/push'
 import { attachWindowStateTracking, restoreCompanionBounds, type WindowStateHandle } from './windowState'
@@ -15,8 +12,10 @@ export interface MainWindowDeps {
   isQuitting: () => boolean
 }
 
-/** Content size + the transparent shadow gutter on both sides. */
-const G2 = FLOAT_GUTTER * 2
+/** First-frame background matches the theme so no black/white box ever flashes. */
+function themeBackground(theme: string): string {
+  return theme === 'light' ? '#F6F4F0' : '#161514'
+}
 
 /** If the renderer never signals ui:ready (wedged page), reveal anyway after this. */
 const REVEAL_FALLBACK_MS = 4000
@@ -34,17 +33,17 @@ export class MainWindowManager {
 
   create(showOnReady: boolean): BrowserWindow {
     const bounds = restoreCompanionBounds(this.deps.appStateRepo, {
-      width: MAIN_WINDOW.width + G2,
-      height: MAIN_WINDOW.height + G2
+      width: MAIN_WINDOW.width,
+      height: MAIN_WINDOW.height
     })
     const win = new BrowserWindow({
       ...bounds,
-      minWidth: MAIN_WINDOW.minWidth + G2,
-      minHeight: MAIN_WINDOW.minHeight + G2,
-      maxWidth: MAIN_WINDOW.maxWidth + G2,
+      minWidth: MAIN_WINDOW.minWidth,
+      minHeight: MAIN_WINDOW.minHeight,
+      maxWidth: MAIN_WINDOW.maxWidth,
       frame: false,
       show: false,
-      transparent: true,
+      backgroundColor: themeBackground(this.deps.appStateRepo.get().theme),
       skipTaskbar: false,
       maximizable: false,
       fullscreenable: false,
@@ -153,10 +152,10 @@ export class MainWindowManager {
     const b = w.getBounds()
     if (on) {
       this.restoreHeight = b.height
-      w.setMinimumSize(MAIN_WINDOW.minWidth + G2, SHADED_HEIGHT + G2)
-      w.setBounds({ x: b.x, y: b.y, width: b.width, height: SHADED_HEIGHT + G2 })
+      w.setMinimumSize(MAIN_WINDOW.minWidth, SHADED_HEIGHT)
+      w.setBounds({ x: b.x, y: b.y, width: b.width, height: SHADED_HEIGHT })
     } else {
-      w.setMinimumSize(MAIN_WINDOW.minWidth + G2, MAIN_WINDOW.minHeight + G2)
+      w.setMinimumSize(MAIN_WINDOW.minWidth, MAIN_WINDOW.minHeight)
       // Unshading grows downward — clamp so a shade strip parked at the bottom edge doesn't
       // push the restored body below the work area.
       const workArea = screen.getDisplayMatching(b).workArea

@@ -4,16 +4,13 @@
 .cap-shell {
   display: flex;
   flex-direction: column;
-  /* floats inside the transparent gutter, like the companion card */
-  height: calc(100vh - var(--float-gutter) * 2);
-  margin: var(--float-gutter);
+  height: 100vh;
   padding: var(--sp-3) var(--sp-4);
   gap: var(--sp-2);
   background: var(--canvas);
-  border: 1px solid color-mix(in srgb, var(--ink-1) 14%, transparent);
+  border: 1px solid var(--hairline);
   border-radius: var(--r-window);
   overflow: hidden;
-  box-shadow: var(--float-shadow);
   animation: cap-in 160ms var(--ease-enter);
 }
 @keyframes cap-in {

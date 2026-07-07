@@ -64,10 +64,6 @@ export const BACKUPS_RECENT_KEEP = 10
 export const BACKUPS_DAILY_KEEP = 7
 
 // ── Windows / UI ─────────────────────────────────────────────────────────────
-/** Transparent margin around the app card: the OS window is inflated by this on every side
- *  so the card can cast a real shadow onto the desktop — the "floats above the screen" look.
- *  All *_WINDOW sizes below stay CONTENT sizes; window managers add the gutter. */
-export const FLOAT_GUTTER = 16
 export const MAIN_WINDOW = { width: 384, height: 560, minWidth: 340, minHeight: 440, maxWidth: 560 }
 export const SHADED_HEIGHT = 48
 export const CAPTURE_WINDOW = { width: 520, height: 180, grownHeight: 300 }
