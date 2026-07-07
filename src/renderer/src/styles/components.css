@@ -300,7 +300,15 @@
 }
 .tabs__spacer { flex: 1; }
 .tabs__loops {
+  /* inline-flex + nowrap: in a tight 5-tab row the pill must compress, never wrap the
+     ◌ above its count (seen live at 384px with Desk present) */
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  white-space: nowrap;
   font-size: var(--fs-meta);
+  line-height: var(--lh-meta);
   color: var(--loop);
   border: 1px solid var(--loop-tint);
   border-radius: var(--r-pill);
