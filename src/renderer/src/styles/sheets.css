@@ -384,6 +384,27 @@
 }
 .settings__value { font-size: var(--fs-sec); color: var(--ink-3); }
 .settings__note { font-size: var(--fs-meta); color: var(--ink-3); }
+
+/* ── "My week, on a card" share sheet ──────────────────────── */
+.weekcard__canvas {
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-card);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--sp-3);
+}
+.weekcard__actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--sp-2);
+}
+.weekcard__note {
+  text-align: center;
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  margin-bottom: var(--sp-2);
+}
 .settings__footer {
   display: flex;
   justify-content: space-between;

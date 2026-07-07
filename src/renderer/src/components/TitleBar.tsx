@@ -11,6 +11,7 @@ const MENU_ITEMS: ReadonlyArray<{ action: TitleBarMenuAction; label: string }> =
   { action: 'legend', label: 'Legend' },
   { action: 'settings', label: 'Settings' },
   { action: 'briefing', label: 'Morning briefing' },
+  { action: 'shareWeek', label: 'My week, on a card' },
   { action: 'pauseAssistant', label: 'Pause assistant' },
   { action: 'moveWindow', label: 'Move window' },
   { action: 'quit', label: 'Quit' }

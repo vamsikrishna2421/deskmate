@@ -64,6 +64,7 @@ export type TitleBarMenuAction =
   | 'legend'
   | 'settings'
   | 'briefing'
+  | 'shareWeek'
   | 'guide'
   | 'tour'
   | 'pauseAssistant'

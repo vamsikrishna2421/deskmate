@@ -64,6 +64,8 @@ export interface IpcSchema {
   'snippets:copy': { req: { id: string }; res: { clearAfterSeconds: number | null } }
   /** kind 'url' only — validated http(s), opened in the default browser. */
   'snippets:open': { req: { id: string }; res: void }
+  /** Rendered week-card PNG (data URL) → OS clipboard as an image, ready to paste anywhere. */
+  'week:copyCard': { req: { dataUrl: string }; res: void }
   'data:openFolder': { req: void; res: void }
   'data:exportAll': { req: void; res: { path: string } | { canceled: true } }
   'app:getVersion': { req: void; res: string }
@@ -150,6 +152,7 @@ export const IPC_CHANNELS: readonly IpcChannel[] = [
   'snippets:delete',
   'snippets:copy',
   'snippets:open',
+  'week:copyCard',
   'data:openFolder',
   'data:exportAll',
   'app:getVersion',

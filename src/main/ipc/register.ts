@@ -1,6 +1,6 @@
 /** Binds every IpcSchema channel via ipcMain.handle. Every payload is validated and clamped at
  *  this boundary, and every request's sender frame is verified against our two known pages. */
-import { app, dialog, ipcMain, nativeTheme, safeStorage, shell } from 'electron'
+import { app, clipboard, dialog, ipcMain, nativeImage, nativeTheme, safeStorage, shell } from 'electron'
 import type { IpcMainInvokeEvent } from 'electron'
 import { promises as fs } from 'node:fs'
 import { join } from 'node:path'
@@ -458,6 +458,15 @@ export function registerIpc(deps: IpcDeps): void {
     void shell.openExternal(deps.snippetsRepo.urlOf(id(obj(raw, 'snippets:open').id)))
   })
 
+  bind('week:copyCard', (raw) => {
+    const r = obj(raw, 'week:copyCard')
+    if (typeof r.dataUrl !== 'string') fail('dataUrl must be a string')
+    if (!r.dataUrl.startsWith('data:image/png;base64,')) fail('dataUrl must be a PNG data URL')
+    if (r.dataUrl.length > 8_000_000) fail('image is too large')
+    const img = nativeImage.createFromDataURL(r.dataUrl)
+    if (img.isEmpty()) fail('image could not be decoded')
+    clipboard.writeImage(img)
+  })
   bind('data:openFolder', async () => {
     await shell.openPath(deps.dataDir)
   })

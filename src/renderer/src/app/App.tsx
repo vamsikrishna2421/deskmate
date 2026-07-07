@@ -62,6 +62,7 @@ import { SheetContainer } from '../components/SheetContainer'
 import { BriefingSheet } from '../components/BriefingSheet'
 import { LegendPopover } from '../components/LegendPopover'
 import { SettingsSheet } from '../components/SettingsSheet'
+import { WeekCardSheet } from '../components/WeekCardSheet'
 import { Toasts } from '../components/Toasts'
 
 const VIEW_TITLES: Record<ViewId, string> = {
@@ -263,6 +264,9 @@ export default function App(): React.JSX.Element {
     switch (action) {
       case 'legend':
         uiDispatch({ type: 'openSheet', sheet: 'legend' })
+        break
+      case 'shareWeek':
+        uiDispatch({ type: 'openSheet', sheet: 'shareweek' })
         break
       case 'guide':
         uiDispatch({ type: 'openSheet', sheet: 'guide' })
@@ -493,6 +497,16 @@ export default function App(): React.JSX.Element {
               uiDispatch({ type: 'setLegendFilter', filter })
               uiDispatch({ type: 'openSheet', sheet: null })
             }}
+            onClose={() => uiDispatch({ type: 'openSheet', sheet: null })}
+          />
+        </SheetContainer>
+      )}
+
+      {ui.activeSheet === 'shareweek' && (
+        <SheetContainer label="My week, on a card" onScrimClick={() => uiDispatch({ type: 'openSheet', sheet: null })}>
+          <WeekCardSheet
+            tasks={tasksState.tasks}
+            dark={settings?.theme !== 'light'}
             onClose={() => uiDispatch({ type: 'openSheet', sheet: null })}
           />
         </SheetContainer>
