@@ -11,23 +11,31 @@ import { useApi } from '../state/store'
 const W = 1080
 const H = 1350
 
+/** Poster palette — the CARD is a poster, not the app: it competes in a Teams channel.
+ *  Bolder than the in-app tokens on purpose; still DeskMate's family of hues. */
 interface Palette {
-  canvas: string
-  surface: string
+  bgTop: string
+  bgBottom: string
+  glow: string
   ink1: string
   ink2: string
-  ink3: string
   accent: string
-  accentTint: string
+  accentDeep: string
+  ochre: string
+  violet: string
+  pill: string
+  grain: string
 }
 
-const LIGHT: Palette = {
-  canvas: '#F6F4F0', surface: '#FFFFFF', ink1: '#262320', ink2: '#6B665E',
-  ink3: '#A39D92', accent: '#2F6D5F', accentTint: '#E4EFEA'
-}
 const DARK: Palette = {
-  canvas: '#161514', surface: '#232220', ink1: '#EDEAE4', ink2: '#A5A099',
-  ink3: '#6E6A64', accent: '#83C4B0', accentTint: '#223B34'
+  bgTop: '#0E1F1A', bgBottom: '#141312', glow: 'rgba(131,196,176,0.32)',
+  ink1: '#F4F1EA', ink2: '#B9B3A8', accent: '#8FDCC2', accentDeep: '#3E8A72',
+  ochre: '#E8B86A', violet: '#C2A9F0', pill: 'rgba(255,255,255,0.06)', grain: 'rgba(255,255,255,0.02)'
+}
+const LIGHT: Palette = {
+  bgTop: '#F2EFE8', bgBottom: '#E4EFEA', glow: 'rgba(47,109,95,0.18)',
+  ink1: '#20302B', ink2: '#5E6B64', accent: '#2F6D5F', accentDeep: '#1F4D42',
+  ochre: '#9A6B14', violet: '#6E5AA0', pill: 'rgba(47,109,95,0.08)', grain: 'rgba(38,35,32,0.02)'
 }
 
 function headline(done: number): string {
@@ -43,80 +51,145 @@ function drawCard(ctx: CanvasRenderingContext2D, tasks: Task[], now: Date, dark:
   const serif = '"Newsreader Variable", Georgia, serif'
   const sans = '"Inter Variable", "Segoe UI", sans-serif'
 
-  ctx.fillStyle = p.canvas
+  // ── background: deep vertical gradient + two soft glows + grain ──
+  const bg = ctx.createLinearGradient(0, 0, 0, H)
+  bg.addColorStop(0, p.bgTop)
+  bg.addColorStop(1, p.bgBottom)
+  ctx.fillStyle = bg
   ctx.fillRect(0, 0, W, H)
+  const glow1 = ctx.createRadialGradient(W - 120, 180, 0, W - 120, 180, 620)
+  glow1.addColorStop(0, p.glow)
+  glow1.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = glow1
+  ctx.fillRect(0, 0, W, H)
+  const glow2 = ctx.createRadialGradient(80, H - 200, 0, 80, H - 200, 520)
+  glow2.addColorStop(0, dark ? 'rgba(194,169,240,0.10)' : 'rgba(110,90,160,0.08)')
+  glow2.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = glow2
+  ctx.fillRect(0, 0, W, H)
+  ctx.fillStyle = p.grain
+  for (let i = 0; i < 2600; i++) {
+    ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2)
+  }
 
-  // dateline
+  // ── constellation of DeskMate marks, upper right ──
+  const stars: Array<[number, number, number, string]> = [
+    [880, 300, 34, p.accent], [975, 420, 22, p.violet], [800, 470, 18, p.ink2],
+    [940, 560, 26, p.ochre], [860, 640, 16, p.accent]
+  ]
+  for (const [x, y, size, color] of stars) {
+    ctx.fillStyle = color
+    ctx.globalAlpha = 0.85
+    ctx.font = `400 ${size * 2}px ${sans}`
+    ctx.fillText('✦', x, y)
+  }
+  ctx.globalAlpha = 1
+
+  // ── dateline in a hairline pill ──
   const start = new Date(`${s.weekOf}T00:00:00`)
   const dateline = `WEEK OF ${start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }).toUpperCase()}`
-  ctx.fillStyle = p.ink3
-  ctx.font = `500 34px ${sans}`
-  ctx.fillText(dateline, 96, 150)
-
-  // serif headline
-  ctx.fillStyle = p.ink1
-  ctx.font = `500 120px ${serif}`
-  ctx.fillText(headline(s.doneCount), 90, 290)
+  ctx.font = `600 30px ${sans}`
+  const dlW = ctx.measureText(dateline).width
+  ctx.strokeStyle = p.accentDeep
+  ctx.lineWidth = 2.5
+  ctx.beginPath()
+  ctx.roundRect(90, 96, dlW + 56, 66, 999)
+  ctx.stroke()
   ctx.fillStyle = p.accent
-  ctx.fillRect(96, 330, 120, 5)
+  ctx.fillText(dateline, 118, 140)
 
-  // hero number
+  // ── serif headline, big ──
   ctx.fillStyle = p.ink1
-  ctx.font = `600 300px ${sans}`
-  ctx.fillText(String(s.doneCount), 90, 690)
-  const numW = ctx.measureText(String(s.doneCount)).width
-  ctx.fillStyle = p.ink2
-  ctx.font = `400 52px ${sans}`
-  ctx.fillText(s.doneCount === 1 ? 'thing finished' : 'things finished', 110 + numW, 685)
+  ctx.font = `500 132px ${serif}`
+  ctx.fillText(headline(s.doneCount), 84, 320)
 
-  // stat lines
-  const lines: string[] = []
-  if (s.hardDeadlinesHit > 0) lines.push(`●  ${s.hardDeadlinesHit} hard deadline${s.hardDeadlinesHit === 1 ? '' : 's'} hit`)
-  if (s.focusedMinutes >= 60) lines.push(`◔  about ${Math.round(s.focusedMinutes / 30) / 2} hours of focused work`)
-  if (s.peopleHelped.length > 0) lines.push(`→  unblocked ${s.peopleHelped.join(', ')}`)
-  if (s.organizedByAssistant > 0) lines.push(`✦  ${s.organizedByAssistant} organized by the assistant`)
-  if (s.questionsAnswered > 0) lines.push(`◌  ${s.questionsAnswered} question${s.questionsAnswered === 1 ? '' : 's'} settled`)
-  if (lines.length === 0) lines.push('A clear desk is also an achievement.')
-  ctx.font = `400 46px ${sans}`
-  lines.slice(0, 4).forEach((line, i) => {
-    ctx.fillStyle = i === 0 ? p.ink1 : p.ink2
-    ctx.fillText(line, 100, 810 + i * 84)
+  // ── hero number with glow + accent, baseline-aligned label ──
+  ctx.save()
+  ctx.shadowColor = p.glow
+  ctx.shadowBlur = 90
+  ctx.fillStyle = p.accent
+  ctx.font = `650 400px ${sans}`
+  ctx.fillText(String(s.doneCount), 76, 740)
+  ctx.restore()
+  const numW = ctx.measureText(String(s.doneCount)).width
+  ctx.fillStyle = p.ink1
+  ctx.font = `500 56px ${sans}`
+  ctx.fillText('things', 150 + numW, 660)
+  ctx.fillText('finished', 150 + numW, 730)
+
+  // ── stat pills: tinted rounded rows, glyphs in their semantic colors ──
+  interface Pill { glyph: string; glyphColor: string; text: string }
+  const pills: Pill[] = []
+  if (s.hardDeadlinesHit > 0)
+    pills.push({ glyph: '●', glyphColor: p.ochre, text: `${s.hardDeadlinesHit} hard deadline${s.hardDeadlinesHit === 1 ? '' : 's'} hit` })
+  if (s.peopleHelped.length > 0)
+    pills.push({ glyph: '→', glyphColor: p.accent, text: `unblocked ${s.peopleHelped.join(', ')}` })
+  if (s.focusedMinutes >= 60)
+    pills.push({ glyph: '◔', glyphColor: p.violet, text: `${Math.round(s.focusedMinutes / 30) / 2}h of focused work` })
+  if (s.questionsAnswered > 0)
+    pills.push({ glyph: '◌', glyphColor: p.violet, text: `${s.questionsAnswered} question${s.questionsAnswered === 1 ? '' : 's'} settled` })
+  else if (s.organizedByAssistant > 0)
+    pills.push({ glyph: '✦', glyphColor: p.accent, text: `${s.organizedByAssistant} organized by the assistant` })
+  if (pills.length === 0) pills.push({ glyph: '○', glyphColor: p.accent, text: 'a clear desk is also an achievement' })
+  ctx.font = `500 44px ${sans}`
+  pills.slice(0, 3).forEach((pill, i) => {
+    const y = 788 + i * 98
+    const textW = ctx.measureText(pill.text).width
+    ctx.fillStyle = p.pill
+    ctx.beginPath()
+    ctx.roundRect(84, y, textW + 150, 84, 999)
+    ctx.fill()
+    ctx.fillStyle = pill.glyphColor
+    ctx.fillText(pill.glyph, 122, y + 58)
+    ctx.fillStyle = p.ink1
+    ctx.fillText(pill.text, 196, y + 58)
   })
 
-  // Mon–Sun bars
-  const chartY = 1165
+  // ── Mon–Sun bars: gradient fills, busiest glows, caption above ──
+  const chartY = 1218
   const barMax = Math.max(...s.byDay, 1)
   const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-  for (let i = 0; i < 7; i++) {
-    const x = 100 + i * 92
-    const h = s.byDay[i] === 0 ? 6 : 24 + (s.byDay[i] / barMax) * 96
-    ctx.fillStyle = s.byDay[i] === barMax && barMax > 0 ? p.accent : p.accentTint
-    ctx.beginPath()
-    ctx.roundRect(x, chartY - h, 56, h, 8)
-    ctx.fill()
-    ctx.fillStyle = p.ink3
-    ctx.font = `500 30px ${sans}`
-    ctx.fillText(dayLabels[i], x + 18, chartY + 44)
-  }
   if (s.busiestDay) {
+    // floats right of the (short) weekend bars, mid-chart — clear of pills and tall weekday bars
     ctx.fillStyle = p.ink2
-    ctx.font = `italic 400 40px ${serif}`
-    ctx.fillText(`${s.busiestDay} carried the week.`, 100, chartY - 160)
+    ctx.font = `italic 400 42px ${serif}`
+    const caption = `${s.busiestDay} carried the week.`
+    ctx.fillText(caption, W - 96 - ctx.measureText(caption).width, chartY - 60)
+  }
+  for (let i = 0; i < 7; i++) {
+    const x = 90 + i * 90
+    const h = s.byDay[i] === 0 ? 8 : 30 + (s.byDay[i] / barMax) * 120
+    const grad = ctx.createLinearGradient(0, chartY - h, 0, chartY)
+    grad.addColorStop(0, p.accent)
+    grad.addColorStop(1, p.accentDeep)
+    ctx.save()
+    if (s.byDay[i] === barMax && barMax > 0) {
+      ctx.shadowColor = p.glow
+      ctx.shadowBlur = 40
+    }
+    ctx.fillStyle = s.byDay[i] === 0 ? p.pill : grad
+    ctx.beginPath()
+    ctx.roundRect(x, chartY - h, 58, h, 10)
+    ctx.fill()
+    ctx.restore()
+    ctx.fillStyle = p.ink2
+    ctx.font = `500 30px ${sans}`
+    ctx.fillText(dayLabels[i], x + 20, chartY + 46)
   }
 
-  // wordmark footer
-  ctx.strokeStyle = p.ink3
+  // ── wordmark, bottom right ──
+  ctx.strokeStyle = p.ink2
   ctx.lineWidth = 4
   ctx.beginPath()
-  ctx.roundRect(96, H - 108, 46, 46, 12)
+  ctx.roundRect(W - 300, H - 106, 44, 44, 12)
   ctx.stroke()
   ctx.beginPath()
-  ctx.moveTo(108, H - 76)
-  ctx.lineTo(130, H - 76)
+  ctx.moveTo(W - 288, H - 76)
+  ctx.lineTo(W - 268, H - 76)
   ctx.stroke()
-  ctx.fillStyle = p.ink3
+  ctx.fillStyle = p.ink2
   ctx.font = `500 36px ${sans}`
-  ctx.fillText('DeskMate', 160, H - 72)
+  ctx.fillText('DeskMate', W - 240, H - 72)
 }
 
 export function WeekCardSheet(props: { tasks: Task[]; dark: boolean; onClose: () => void }): React.JSX.Element {
