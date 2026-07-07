@@ -3,11 +3,13 @@
  *  cursor; blur or Esc hides it (never destroyed → instant reopen); grows once to 520×300. */
 import { app, BrowserWindow, clipboard, screen } from 'electron'
 import { join } from 'node:path'
-import { CAPTURE_WINDOW, PASTE_CAP_TOTAL } from '@shared/constants'
+import { CAPTURE_WINDOW, FLOAT_GUTTER, PASTE_CAP_TOTAL } from '@shared/constants'
 import { push } from '../ipc/push'
 
 const GROW_ANIMATION_MS = 140
 const GROW_STEP_MS = 20
+/** Transparent shadow gutter on both sides (see mainWindow.ts — same floating-card look). */
+const G2 = FLOAT_GUTTER * 2
 
 export class CaptureWindowManager {
   private win: BrowserWindow | undefined
@@ -24,10 +26,10 @@ export class CaptureWindowManager {
 
   create(): BrowserWindow {
     const win = new BrowserWindow({
-      width: CAPTURE_WINDOW.width,
-      height: CAPTURE_WINDOW.height,
+      width: CAPTURE_WINDOW.width + G2,
+      height: CAPTURE_WINDOW.height + G2,
       show: false,
-      backgroundColor: '#1F1E1C',
+      transparent: true,
       frame: false,
       alwaysOnTop: true,
       skipTaskbar: true,
@@ -76,10 +78,10 @@ export class CaptureWindowManager {
     const cursor = screen.getCursorScreenPoint()
     const workArea = screen.getDisplayNearestPoint(cursor).workArea
     w.setBounds({
-      x: Math.round(workArea.x + (workArea.width - CAPTURE_WINDOW.width) / 2),
+      x: Math.round(workArea.x + (workArea.width - CAPTURE_WINDOW.width - G2) / 2),
       y: Math.round(workArea.y + workArea.height * 0.22),
-      width: CAPTURE_WINDOW.width,
-      height: CAPTURE_WINDOW.height
+      width: CAPTURE_WINDOW.width + G2,
+      height: CAPTURE_WINDOW.height + G2
     })
     w.show()
     w.focus()
@@ -105,7 +107,7 @@ export class CaptureWindowManager {
     if (!w) return
     this.stopGrow()
     const from = w.getBounds().height
-    const to = Math.max(from, Math.min(height, CAPTURE_WINDOW.grownHeight))
+    const to = Math.max(from, Math.min(height, CAPTURE_WINDOW.grownHeight) + G2)
     if (to === from) return
     const steps = Math.max(1, Math.round(GROW_ANIMATION_MS / GROW_STEP_MS))
     let step = 0

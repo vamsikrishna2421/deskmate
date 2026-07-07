@@ -248,7 +248,7 @@
 .toasts {
   position: fixed;
   left: 50%;
-  bottom: var(--sp-4);
+  bottom: calc(var(--sp-4) + var(--float-gutter));
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;

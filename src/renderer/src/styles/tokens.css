@@ -37,6 +37,9 @@
   --shadow-lg: 0 12px 40px rgba(38,35,32,.20);
   /* resting card lift — a whisper of physicality so chits read as paper, not form fields */
   --lift-sm: 0 1px 2px rgba(38,35,32,.05);
+  /* floating window: transparent OS-window gutter + the shadow the app casts on the desktop */
+  --float-gutter: 16px;
+  --float-shadow: 0 10px 28px rgba(38,35,32,.30), 0 2px 8px rgba(38,35,32,.18);
   /* motion */
   --dur-fast: 120ms; --dur-base: 180ms; --dur-expand: 200ms; --dur-enter: 220ms;
   --dur-sheet: 260ms; --dur-briefing: 280ms; --dur-check: 160ms;
@@ -62,6 +65,7 @@
   --shadow-md: 0 6px 16px rgba(0,0,0,.45);
   --shadow-lg: 0 16px 48px rgba(0,0,0,.55);
   --lift-sm: 0 1px 2px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.05);
+  --float-shadow: 0 12px 32px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.40);
 }
 
 /* Reduced motion — DESIGN §14: every duration token → 80ms, transforms removed
