@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Snippet, SnippetKind } from '@shared/types/snippet'
+import { deriveSnippet } from '@shared/snippetDerive'
 import { useApi } from '../state/store'
 import { relativeTime } from '../lib/format'
 import '../styles/snippets.css'
@@ -40,6 +41,12 @@ export function SnippetsView(): React.JSX.Element {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [copiedNote, setCopiedNote] = useState('')
   const copyTimer = useRef<number | undefined>(undefined)
+  // Quick add: ONE box + a Secret toggle. Kind and label are derived; only a secret asks
+  // for a name (the name is what shows on the desk — the value stays masked).
+  const [quick, setQuick] = useState('')
+  const [quickSecret, setQuickSecret] = useState(false)
+  const [quickName, setQuickName] = useState('')
+  const nameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     let disposed = false
@@ -102,6 +109,45 @@ export function SnippetsView(): React.JSX.Element {
     setForm({ editingId: s.id, kind: s.kind, label: s.label, value: s.kind === 'secret' ? '' : s.value })
   }
 
+  const quickAdd = (): void => {
+    setError(null)
+    const value = quickSecret ? quick : quick.trim()
+    if (!value) return
+    let kind: SnippetKind
+    let label: string
+    if (quickSecret) {
+      label = quickName.trim()
+      if (!label) {
+        setError('Give it a name — the name is what appears on the desk.')
+        nameRef.current?.focus()
+        return
+      }
+      kind = 'secret'
+    } else {
+      const derived = deriveSnippet(value)
+      kind = derived.kind
+      label = derived.label
+    }
+    void api
+      .invoke('snippets:create', { kind, label, value })
+      .then(() => {
+        setQuick('')
+        setQuickName('')
+        setQuickSecret(false)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err)
+        setError(msg.replace(/^.*deskmate ipc: /, '').replace(/^Error invoking remote method .*?: /, ''))
+      })
+  }
+
+  const onQuickKeyDown = (e: React.KeyboardEvent): void => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      quickAdd()
+    }
+  }
+
   const preview = (s: Snippet): string => {
     if (s.kind === 'secret') return '••••••••'
     const oneLine = s.value.replace(/\s+/g, ' ').trim()
@@ -113,9 +159,69 @@ export function SnippetsView(): React.JSX.Element {
   return (
     <div className="snips" role="region" aria-label="Desk snippets">
       {!formOpen && (
-        <button type="button" className="ghost snips__add" onClick={() => setFormOpen(true)}>
-          + Add a snippet
-        </button>
+        <div className="snips__quick">
+          <div className="snips__quickrow">
+            {quickSecret ? (
+              <input
+                type="password"
+                className="snips__quickfield"
+                placeholder="Paste the secret…"
+                aria-label="Secret value"
+                autoComplete="off"
+                value={quick}
+                onChange={(e) => setQuick(e.target.value)}
+                onKeyDown={onQuickKeyDown}
+              />
+            ) : (
+              <textarea
+                className="snips__quickfield"
+                rows={quick.includes('\n') || quick.length > 80 ? 3 : 1}
+                placeholder="Paste anything — a command, a link, a note…"
+                aria-label="Add to the desk"
+                spellCheck={false}
+                value={quick}
+                onChange={(e) => setQuick(e.target.value)}
+                onKeyDown={onQuickKeyDown}
+              />
+            )}
+            <button
+              type="button"
+              className={`snips__secrettoggle${quickSecret ? ' snips__secrettoggle--on' : ''}`}
+              aria-pressed={quickSecret}
+              title={quickSecret ? 'This is a secret — value stays masked' : 'Mark as a secret'}
+              onClick={() => {
+                setQuickSecret((v) => {
+                  const on = !v
+                  if (on) window.setTimeout(() => nameRef.current?.focus(), 50)
+                  return on
+                })
+              }}
+            >
+              Secret
+            </button>
+          </div>
+          {quickSecret && (
+            <input
+              ref={nameRef}
+              type="text"
+              className="snips__quickname"
+              placeholder="Name it — e.g. Gmail password"
+              aria-label="Secret name"
+              value={quickName}
+              onChange={(e) => setQuickName(e.target.value)}
+              onKeyDown={onQuickKeyDown}
+            />
+          )}
+          {quickSecret && (
+            <p className="snips__hint">
+              Only the name shows on the desk. Encrypted on this machine; Copy clears after 30s.
+            </p>
+          )}
+          {!formOpen && error && <p className="snips__error">{error}</p>}
+          <div className="snips__quickhint" aria-hidden="true">
+            Enter to add · Shift+Enter new line
+          </div>
+        </div>
       )}
       {formOpen && (
         <form
@@ -177,7 +283,7 @@ export function SnippetsView(): React.JSX.Element {
           {error && <p className="snips__error">{error}</p>}
           <div className="snips__formactions">
             <button type="submit" className="primary">
-              {form.editingId ? 'Save' : 'Add'}
+              Save
             </button>
             <button
               type="button"

@@ -12,6 +12,65 @@
   font-size: var(--fs-sec);
 }
 
+/* ── Quick add: one box + a Secret toggle; kind/label are derived ────────── */
+.snips__quick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.snips__quickrow {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: flex-start;
+}
+.snips__quickfield {
+  flex: 1;
+  font: inherit;
+  font-size: var(--fs-sec);
+  line-height: var(--lh-sec);
+  color: var(--ink-1);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  padding: var(--sp-2) var(--sp-3);
+  resize: none;
+  box-shadow: var(--lift-sm);
+}
+.snips__quickfield::placeholder { color: var(--ink-3); }
+.snips__quickfield:focus { outline: none; border-color: var(--accent); }
+.snips__secrettoggle {
+  flex: none;
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  padding: var(--sp-1) var(--sp-3);
+  margin-top: 3px;
+  transition: color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard);
+}
+.snips__secrettoggle:hover { border-color: var(--ink-3); color: var(--ink-1); }
+.snips__secrettoggle--on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.snips__quickname {
+  font: inherit;
+  font-size: var(--fs-sec);
+  color: var(--ink-1);
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  padding: var(--sp-1) var(--sp-2);
+}
+.snips__quickname:focus { outline: none; border-color: var(--accent); }
+.snips__quickhint {
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+  color: var(--ink-3);
+}
+
 .snips__form {
   display: flex;
   flex-direction: column;
