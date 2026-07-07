@@ -81,7 +81,7 @@ function mergeLoaded(defaults: AppState, doc: Record<string, unknown>): AppState
   const state: AppState = { ...defaults, ...partial, ollama, schemaVersion: SCHEMA_VERSION }
   // Dark is the default; only an INTENTIONAL light/dark choice survives. A stored 'system'
   // (the old default nobody chose) flips to dark.
-  if (state.theme !== 'light' && state.theme !== 'dark') state.theme = 'dark'
+  if (!['light', 'dark', 'brutalist', 'sticky'].includes(state.theme)) state.theme = 'dark'
   state.launchAtLogin = bool(partial.launchAtLogin, defaults.launchAtLogin)
   state.startHidden = bool(partial.startHidden, defaults.startHidden)
   state.remindersEnabled = bool(partial.remindersEnabled, defaults.remindersEnabled)

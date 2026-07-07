@@ -155,7 +155,7 @@ export function SettingsSheet(props: SettingsSheetProps): React.JSX.Element {
           <span className="settings__label">Theme</span>
           <div className="editor__segments">
             {/* Dark is the default; light is an intentional choice. No 'system' — see appStateRepo. */}
-            {(['dark', 'light'] as const).map((t) => (
+            {(['dark', 'light', 'brutalist', 'sticky'] as const).map((t) => (
               <button
                 key={t}
                 type="button"

@@ -209,7 +209,7 @@ function sanitizeSettings(
     patch.coachMarksSeen = strArray(r.coachMarksSeen, 64, 64, 'coachMarksSeen')
   }
   if (r.onboardingDone !== undefined) patch.onboardingDone = bool(r.onboardingDone, 'onboardingDone')
-  if (r.theme !== undefined) patch.theme = oneOf(r.theme, ['system', 'light', 'dark'] as const, 'theme')
+  if (r.theme !== undefined) patch.theme = oneOf(r.theme, ['system', 'light', 'dark', 'brutalist', 'sticky'] as const, 'theme')
   if (r.launchAtLogin !== undefined) patch.launchAtLogin = bool(r.launchAtLogin, 'launchAtLogin')
   if (r.startHidden !== undefined) patch.startHidden = bool(r.startHidden, 'startHidden')
   if (r.hotkeyCapture !== undefined) patch.hotkeyCapture = accelerator(r.hotkeyCapture, 'hotkeyCapture')
@@ -485,7 +485,10 @@ function applySettingsUpdate(deps: IpcDeps, raw: unknown): AppState {
   const current = deps.appStateRepo.get()
   const patch = sanitizeSettings(raw, current)
   const next = deps.appStateRepo.update(patch)
-  if (patch.theme !== undefined) nativeTheme.themeSource = next.theme
+  if (patch.theme !== undefined) {
+    // nativeTheme only knows system/light/dark — custom skins ride a light base.
+    nativeTheme.themeSource = next.theme === 'brutalist' || next.theme === 'sticky' ? 'light' : next.theme
+  }
   if (patch.hotkeyCapture !== undefined || patch.hotkeyToggle !== undefined) {
     deps.shortcuts.apply({ capture: next.hotkeyCapture, toggle: next.hotkeyToggle })
   }

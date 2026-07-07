@@ -1,0 +1,103 @@
+/* Optional skins (Settings → Theme): Brutalist and Sticky. Each = a token block (same
+   contract as tokens.css) + a small curated override layer for its signature look.
+   The calm dark/light themes remain the defaults; these are moods you switch into. */
+
+/* ── BRUTALIST — loud poster: hard black borders, offset shadows, chartreuse ── */
+[data-theme='brutalist'] {
+  --canvas: #F2EFE9; --surface: #FFFFFF; --sunken: #E9E5DA; --hairline: #111111;
+  --raised: #FFFFFF;
+  --ink-1: #111111; --ink-2: #3A3833; --ink-3: #756F63;
+  --accent: #111111; --accent-hover: #000000; --accent-press: #000000;
+  --accent-tint: #D8FF3E; --on-accent: #D8FF3E;
+  --overdue: #E03A14; --overdue-tint: #FFD9CF;
+  --today: #9A6B14; --today-tint: #FFE97A;
+  --week: #2456A6; --week-tint: #CFE0F8;
+  --done: #2C7A39; --done-tint: #CDEFD2;
+  --loop: #6A3FD1; --loop-tint: #DCCCFF;
+  --focus-ring: 0 0 0 3px #D8FF3E, 0 0 0 6px #111111;
+  --r-chip: 0px; --r-card: 0px; --r-window: 0px; --r-pill: 0px;
+  --shadow-sm: 3px 3px 0 #111111;
+  --shadow-md: 6px 6px 0 #111111;
+  --shadow-lg: 10px 10px 0 #111111;
+  --lift-sm: 4px 4px 0 #111111;
+  --float-shadow: 10px 10px 0 #111111;
+  color-scheme: light;
+}
+[data-theme='brutalist'] .card { border-width: 3px; }
+[data-theme='brutalist'] .card:hover { transform: translate(-1px, -1px); }
+[data-theme='brutalist'] .card__title,
+[data-theme='brutalist'] .tabs button { font-weight: 700; }
+[data-theme='brutalist'] .tabs__underline { height: 4px; }
+[data-theme='brutalist'] .primary {
+  border: 3px solid #111;
+  box-shadow: 4px 4px 0 #111;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+[data-theme='brutalist'] .capbar__field,
+[data-theme='brutalist'] .cap-field,
+[data-theme='brutalist'] .snips__quickfield,
+[data-theme='brutalist'] .settings__url,
+[data-theme='brutalist'] .snips__quickname { border: 3px solid #111; }
+[data-theme='brutalist'] .sheet { border: 3px solid #111; border-bottom: none; }
+[data-theme='brutalist'] .toast { border: 3px solid #111; }
+[data-theme='brutalist'] .chip--question,
+[data-theme='brutalist'] .chip--deadline[data-variant='overdue'] { border: 2px solid #111; }
+[data-theme='brutalist'] .list__pill { border: 2px solid #111; color: #111; }
+[data-theme='brutalist'] .titlebar__title--brand { font-weight: 800; letter-spacing: -0.02em; color: #111; }
+
+/* ── STICKY — a wooden desk of real paper notes, handwritten voice ── */
+[data-theme='sticky'] {
+  --canvas: #8A6F52; --surface: #FFF3B8; --sunken: #F1E4A6; --hairline: #C9B98F;
+  --raised: #FFF9D6;
+  --ink-1: #33302B; --ink-2: #6B5F4A; --ink-3: #8D7F63;
+  --accent: #5C4733; --accent-hover: #4A3826; --accent-press: #3D2E1F;
+  --accent-tint: #EADFA8; --on-accent: #F3E9D7;
+  --overdue: #B3402E; --overdue-tint: #F6D9CF;
+  --today: #8A6210; --today-tint: #F3E39A;
+  --week: #3E6285; --week-tint: #D6E4F0;
+  --done: #4E7A58; --done-tint: #DBEBD9;
+  --loop: #6E5AA0; --loop-tint: #E4D6F5;
+  --focus-ring: 0 0 0 2px #8A6F52, 0 0 0 4px #FFF3B8;
+  --r-chip: 3px; --r-card: 2px; --r-window: 10px; --r-pill: 999px;
+  --shadow-sm: 0 5px 9px rgba(0, 0, 0, 0.26);
+  --shadow-md: 0 9px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 34px rgba(0, 0, 0, 0.4);
+  --lift-sm: 0 7px 12px rgba(0, 0, 0, 0.28);
+  --float-shadow: 0 16px 34px rgba(0, 0, 0, 0.4);
+  --font-display: 'Segoe Print', 'Comic Sans MS', var(--font-ui);
+  color-scheme: light;
+}
+[data-theme='sticky'] body,
+[data-theme='sticky'] .app-shell {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+[data-theme='sticky'] .card { transform: rotate(-0.7deg); }
+[data-theme='sticky'] .card:nth-child(even) { transform: rotate(0.6deg); background: #BEE3F0; }
+[data-theme='sticky'] .card:nth-child(3n) { background: #E4D6F5; }
+[data-theme='sticky'] .card:hover,
+[data-theme='sticky'] .card--expanded { transform: rotate(0deg); }
+[data-theme='sticky'] .card__title { font-family: 'Segoe Print', 'Comic Sans MS', var(--font-ui); }
+[data-theme='sticky'] .tabs button { font-family: 'Segoe Print', 'Comic Sans MS', var(--font-ui); }
+/* chrome sits on the wood — needs paper-cream ink, not note ink */
+[data-theme='sticky'] .titlebar,
+[data-theme='sticky'] .titlebar__title--brand,
+[data-theme='sticky'] .titlebar__btn,
+[data-theme='sticky'] .list__header,
+[data-theme='sticky'] .list__whisper,
+[data-theme='sticky'] .list__empty { color: #F3E9D7; }
+[data-theme='sticky'] .tabs button:not([aria-selected='true']) { color: #E4D6BC; }
+[data-theme='sticky'] .capbar__field,
+[data-theme='sticky'] .cap-field,
+[data-theme='sticky'] .snips__quickfield {
+  background: #FFF9E3;
+  border: 1px dashed #6B5335;
+  font-family: 'Segoe Print', 'Comic Sans MS', var(--font-ui);
+}
+
+/* Reduced motion: the sticky rotations are static (no animation), so they stand. */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='brutalist'] .card:hover { transform: none; }
+}

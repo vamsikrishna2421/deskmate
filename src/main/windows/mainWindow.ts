@@ -14,7 +14,10 @@ export interface MainWindowDeps {
 
 /** First-frame background matches the theme so no black/white box ever flashes. */
 function themeBackground(theme: string): string {
-  return theme === 'light' ? '#F6F4F0' : '#161514'
+  if (theme === 'light') return '#F6F4F0'
+  if (theme === 'brutalist') return '#F2EFE9'
+  if (theme === 'sticky') return '#8A6F52'
+  return '#161514'
 }
 
 /** If the renderer never signals ui:ready (wedged page), reveal anyway after this. */

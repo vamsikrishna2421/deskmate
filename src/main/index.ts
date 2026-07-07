@@ -134,7 +134,7 @@ function bootstrap(): void {
     e2eLog('store-loaded', { tasks: tRepo.list().length })
 
     const settings = aRepo.get()
-    nativeTheme.themeSource = settings.theme
+    nativeTheme.themeSource = settings.theme === 'brutalist' || settings.theme === 'sticky' ? 'light' : settings.theme
 
     const ollamaClient = new OllamaClient(() => aRepo.get().ollama)
     const openaiClient = new OpenAiClient(() => decryptOpenAiKey(aRepo.get().openaiApiKeyEnc))
@@ -250,7 +250,7 @@ function bootstrap(): void {
       },
       onThemeChange: (theme) => {
         aRepo.update({ theme })
-        nativeTheme.themeSource = theme
+        nativeTheme.themeSource = theme === 'brutalist' || theme === 'sticky' ? 'light' : theme
       },
       onOpenDataFolder: () => void shell.openPath(dataDir),
       onReportProblem: () =>

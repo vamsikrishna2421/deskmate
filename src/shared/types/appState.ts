@@ -23,7 +23,7 @@ export interface OllamaSettings {
 export type AssistantProvider = 'ollama' | 'openai'
 
 export interface Settings {
-  theme: 'system' | 'light' | 'dark'
+  theme: 'system' | 'light' | 'dark' | 'brutalist' | 'sticky'
   launchAtLogin: boolean
   startHidden: boolean
   hotkeyCapture: string

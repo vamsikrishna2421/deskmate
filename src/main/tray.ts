@@ -46,7 +46,7 @@ export interface TrayDeps {
   onRemindersChange: (enabled: boolean) => void
   onPauseChange: (paused: boolean) => void
   onModelSelect: (model: string) => void
-  onThemeChange: (theme: 'dark' | 'light') => void
+  onThemeChange: (theme: 'dark' | 'light' | 'brutalist' | 'sticky') => void
   onOpenDataFolder: () => void
   onReportProblem: () => void
   onCheckUpdates: () => void
@@ -162,8 +162,8 @@ export class TrayManager {
       { label: 'Assistant model', submenu: modelItems },
       {
         label: 'Theme',
-        submenu: (['dark', 'light'] as const).map((t) => ({
-          label: t === 'dark' ? 'Dark' : 'Light',
+        submenu: (['dark', 'light', 'brutalist', 'sticky'] as const).map((t) => ({
+          label: t.charAt(0).toUpperCase() + t.slice(1),
           type: 'radio' as const,
           checked: state.theme === t,
           click: (): void => this.deps.onThemeChange(t)
