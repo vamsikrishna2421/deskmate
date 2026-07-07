@@ -176,8 +176,21 @@ a {
   background: var(--surface);
   border-top-left-radius: var(--r-window);
   border-top-right-radius: var(--r-window);
+  /* a lit top edge — shadow-lg alone can't separate a dark sheet from a dark scrim */
+  border-top: 1px solid color-mix(in srgb, var(--ink-1) 10%, var(--surface));
   box-shadow: var(--shadow-lg);
   animation: sheet-in var(--dur-sheet) var(--ease-enter);
+}
+/* grabber pill — the universal "this is a sheet" affordance */
+.sheet::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--ink-3);
+  opacity: 0.35;
+  margin: var(--sp-2) auto 0;
 }
 @keyframes sheet-in {
   from {

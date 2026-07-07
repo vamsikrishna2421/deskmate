@@ -1,6 +1,10 @@
 /** Companion window entry: fonts, tokens, theme wiring, providers, App. */
 
 import '@fontsource-variable/inter'
+// Editorial serif for greetings + empty-state whispers (--font-display) — the app's most-seen
+// emotional moments deserve better than fallback Georgia. Both files bundle locally (offline).
+import '@fontsource-variable/newsreader/wght.css'
+import '@fontsource-variable/newsreader/wght-italic.css'
 import './styles/tokens.css'
 import './styles/base.css'
 import { StrictMode } from 'react'

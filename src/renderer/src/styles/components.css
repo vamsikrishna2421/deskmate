@@ -135,6 +135,9 @@
   font-weight: 500;
   color: var(--ink-1);
 }
+/* brand at rest is quiet chrome; the working line is live status, one step brighter */
+.titlebar__title--brand { color: var(--ink-2); }
+.titlebar__title--working { color: var(--ink-1); }
 .titlebar__ticker {
   font-size: var(--fs-meta);
   color: var(--ink-2);
@@ -143,6 +146,13 @@
   text-overflow: ellipsis;
 }
 .titlebar__ticker-dot { color: var(--today); }
+.titlebar__tickerdate {
+  margin-left: auto;
+  padding-right: var(--sp-2);
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
 .titlebar__controls {
   margin-left: auto;
   display: flex;
@@ -349,7 +359,7 @@
   font-size: var(--fs-meta);
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 .gauge {
   display: inline-flex;
@@ -414,7 +424,28 @@
   font-size: 15px;
   line-height: 22px;
   color: var(--ink-3);
-  padding: calc(var(--sp-10) * 2) var(--sp-6) var(--sp-10);
+  /* sit at the optical center of the window, not the top third of a void */
+  padding: calc(var(--sp-10) * 3) var(--sp-6) var(--sp-10);
+}
+/* the app's own mark as a 4%-ink watermark — emptiness becomes intentional negative space */
+.list__empty::after {
+  content: '';
+  display: block;
+  width: 108px;
+  height: 84px;
+  margin: var(--sp-10) auto 0;
+  background: currentColor;
+  opacity: 0.05;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect x='3' y='3' width='14' height='14' rx='3.5' fill='none' stroke='black' stroke-width='1.2'/%3E%3Cline x1='5.5' y1='12.5' x2='14.5' y2='12.5' stroke='black' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect x='3' y='3' width='14' height='14' rx='3.5' fill='none' stroke='black' stroke-width='1.2'/%3E%3Cline x1='5.5' y1='12.5' x2='14.5' y2='12.5' stroke='black' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* view switch: incoming content fades up in place (tab underline already slides) */
+.app-scroll--fade {
+  animation: view-in var(--dur-base) var(--ease-enter);
+}
+@keyframes view-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .list__whisper {
   text-align: center;

@@ -5,8 +5,9 @@
   /* type — Inter Variable bundled locally (offline; consistent on future macOS) */
   --font-ui: "Inter Variable", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --font-mono: "Cascadia Mono", Consolas, monospace;
-  /* Classic editorial voice — greetings and empty-state whispers only, never chrome (v1.1). */
-  --font-display: Georgia, "Times New Roman", "Noto Serif", serif;
+  /* Classic editorial voice — greetings and empty-state whispers only, never chrome (v1.1).
+     Newsreader Variable is bundled locally (main.tsx); Georgia remains the fallback. */
+  --font-display: "Newsreader Variable", Georgia, "Times New Roman", "Noto Serif", serif;
   --fs-display: 26px; --lh-display: 32px;
   /* scale px/lh: 11/16 micro · 12/18 meta · 13/19 secondary · 14/20 body/titles ·
      16/22 section · 20/26 greeting; weights 400/500/600 only; tnum everywhere numeric */
@@ -34,6 +35,8 @@
   --shadow-sm: 0 1px 2px rgba(38,35,32,.06);
   --shadow-md: 0 4px 12px rgba(38,35,32,.10);
   --shadow-lg: 0 12px 40px rgba(38,35,32,.20);
+  /* resting card lift — a whisper of physicality so chits read as paper, not form fields */
+  --lift-sm: 0 1px 2px rgba(38,35,32,.05);
   /* motion */
   --dur-fast: 120ms; --dur-base: 180ms; --dur-expand: 200ms; --dur-enter: 220ms;
   --dur-sheet: 260ms; --dur-briefing: 280ms; --dur-check: 160ms;
@@ -42,10 +45,13 @@
   --shimmer-loop: 1800ms; --pulse-loop: 1200ms;  /* suspended when hidden/shaded */
 }
 [data-theme="dark"] {                    /* "charcoal" — warm, not blue */
-  --canvas: #161514; --surface: #1F1E1C; --sunken: #131211; --hairline: #32302C;
-  --raised: #262523;
+  /* surface lifted off canvas (+ inset top light in --lift-sm) so cards read as objects,
+     not pencil outlines — the dark theme must separate like the light theme does */
+  --canvas: #161514; --surface: #232220; --sunken: #1A1918; --hairline: #363430;
+  --raised: #2A2926;
   --ink-1: #EDEAE4; --ink-2: #A5A099; --ink-3: #6E6A64;
-  --accent: #7FB8A8; --accent-hover: #8FC4B5; --accent-press: #6FA898;
+  /* one notch more chroma — the single loud element has to actually be loud */
+  --accent: #83C4B0; --accent-hover: #93D0BD; --accent-press: #72B29E;
   --accent-tint: #223B34; --on-accent: #10201B;
   --overdue: #E08B7B; --overdue-tint: #3A2521;
   --today: #D9A85C;   --today-tint: #38301F;
@@ -54,8 +60,8 @@
   --loop: #AC98D8;    --loop-tint: #2C2739;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
   --shadow-md: 0 6px 16px rgba(0,0,0,.45);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,.55);   /* raised surfaces also get
-     inset 0 1px 0 rgba(255,255,255,.04) top highlight */
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.55);
+  --lift-sm: 0 1px 2px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.05);
 }
 
 /* Reduced motion — DESIGN §14: every duration token → 80ms, transforms removed

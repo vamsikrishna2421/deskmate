@@ -26,9 +26,9 @@ out the deadline, and quietly keeps you on track. Nothing ever leaves your machi
   calm, hard-deadline-only reminders.
 - **Private by design.** Local JSON storage with atomic writes and daily backups, loopback-only
   LLM traffic, no accounts, no telemetry. Every DeskMate window is **invisible to screen
-  sharing** (Teams/Zoom viewers can't see it — you can). The only outbound traffic is a quiet
-  update check against this repo's GitHub Releases; updates download in the background and
-  install when you quit.
+  sharing** (Teams/Zoom viewers can't see it — you can). Outbound traffic is limited to a quiet
+  update check against this repo's GitHub Releases (updates download in the background and
+  install when you quit) — plus OpenAI, only if you explicitly turn on the cloud assistant.
 
 ## Requirements
 
@@ -40,6 +40,10 @@ out the deadline, and quietly keeps you on track. Nothing ever leaves your machi
   ```
   DeskMate works fully without Ollama — capture, edit, and organize by hand; enrichment resumes
   automatically when the assistant comes back.
+- **Machine can't run a local model?** Settings → Assistant → *OpenAI cloud* runs the assistant
+  on `gpt-5-nano` (OpenAI's cheapest model — the only one DeskMate will ever use) with your own
+  API key. Strictly opt-in: while it's on, captured message text is sent to OpenAI. The key is
+  stored DPAPI-encrypted on your machine and is never shown again after saving.
 
 ## Install
 
@@ -83,7 +87,7 @@ for wifi codes and internal tool logins — keep real credentials in a password 
 ## Development
 
 ```bash
-npm test           # 224 unit tests (store, scheduler, LLM pipeline, reducers, date math)
+npm test           # 236 unit tests (store, scheduler, LLM pipeline, providers, reducers, date math)
 npm run typecheck  # strict TS across main + renderer
 npm run build && SMOKE=1 npx vitest run tests/smoke   # Electron launch smoke test
 node scripts/e2e-live.mjs shots/    # live E2E against a real Ollama (screenshots included)

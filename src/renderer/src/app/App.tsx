@@ -408,7 +408,11 @@ export default function App(): React.JSX.Element {
             searchQuery={ui.searchQuery}
             onSelectView={(view) => uiDispatch({ type: 'setView', view })}
             onToggleLoops={() => uiDispatch({ type: 'setLoopsBatchMode', on: !ui.loopsBatchMode })}
-            onSearchOpen={() => uiDispatch({ type: 'setSearchOpen', open: true })}
+            onSearchOpen={() => {
+              // Same dead-end guard as the '/' key: search results only render on task views.
+              if (ui.view === 'snippets') uiDispatch({ type: 'setView', view: 'today' })
+              uiDispatch({ type: 'setSearchOpen', open: true })
+            }}
             onSearchChange={(query) => uiDispatch({ type: 'setSearchQuery', query })}
             onSearchClose={() => uiDispatch({ type: 'setSearchOpen', open: false })}
           />
@@ -440,7 +444,8 @@ export default function App(): React.JSX.Element {
             }}
             onClose={() => uiDispatch({ type: 'setCaptureOpen', open: false })}
           />
-          <div className="app-scroll">
+          {/* key=view: content fades in on tab switch (opacity only — no layout shift). */}
+          <div className="app-scroll app-scroll--fade" key={ui.view}>
             {snippetsView ? (
               <SnippetsView />
             ) : (

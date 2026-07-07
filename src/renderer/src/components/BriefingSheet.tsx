@@ -224,8 +224,14 @@ export function BriefingSheet(props: BriefingSheetProps): React.JSX.Element {
       )}
 
       <footer className="briefing__footer">
+        {/* The greeting is time-aware, so the CTA must be too — "Good evening" ending in
+            "Start the day →" reads like a bug (the briefing fires on first focus, any hour). */}
         <button type="button" className="primary" onClick={props.onAck}>
-          Start the day →
+          {new Date().getHours() < 12
+            ? 'Start the day →'
+            : new Date().getHours() < 17
+              ? 'Back to it →'
+              : 'Plan tomorrow →'}
         </button>
         <button type="button" className="ghost" onClick={props.onDefer}>
           Later

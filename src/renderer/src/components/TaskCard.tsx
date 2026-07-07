@@ -22,6 +22,7 @@ import { OpenQuestions } from './OpenQuestions'
 import type { Task, TaskCardProps } from './props'
 
 const SLOW_AFTER_MS = 8000
+const VERY_SLOW_AFTER_MS = 25000
 
 type Rail = 'overdue' | 'today' | 'week' | 'none'
 
@@ -47,14 +48,20 @@ function TaskCardImpl(props: TaskCardProps): React.JSX.Element {
   const done = task.status === 'done'
   const running = props.enrichment === 'running'
 
-  const [slow, setSlow] = useState(false)
+  // The wait must never freeze: shimmer → (8s) "waking up" → (25s) "a slow one" — the copy
+  // keeps moving so a long read on slow hardware never looks stuck.
+  const [slowStage, setSlowStage] = useState<0 | 1 | 2>(0)
   useEffect(() => {
     if (!running) {
-      setSlow(false)
+      setSlowStage(0)
       return
     }
-    const t = window.setTimeout(() => setSlow(true), SLOW_AFTER_MS)
-    return () => window.clearTimeout(t)
+    const t1 = window.setTimeout(() => setSlowStage(1), SLOW_AFTER_MS)
+    const t2 = window.setTimeout(() => setSlowStage(2), VERY_SLOW_AFTER_MS)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+    }
   }, [running])
 
   // One-time 6% accent wash when enrichment settles (DESIGN §5 ENRICHED).
@@ -141,7 +148,7 @@ function TaskCardImpl(props: TaskCardProps): React.JSX.Element {
             Done{task.completedAt ? ` · ${relativeTime(task.completedAt, now)}` : ''}
           </span>
         ) : props.enrichment ? (
-          <EnrichShimmer state={props.enrichment} slow={slow} />
+          <EnrichShimmer state={props.enrichment} slow={slowStage >= 1} verySlow={slowStage === 2} />
         ) : showRaw ? (
           <span className="card__status" role="status" aria-live="polite">
             <span className="dot dot--pulse pulse" aria-hidden="true" />

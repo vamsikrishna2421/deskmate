@@ -139,6 +139,11 @@ export function TaskCardDetail(props: TaskCardDetailProps): React.JSX.Element {
         />
       )}
       <div className="detail__actions">
+        {/* Done and Priority ride along so their keys are learnable in context — the check
+            circle and the ▲ mark are otherwise the only (silent) teachers. */}
+        <button type="button" className="ghost" onClick={() => actions.onToggleDone(task.id)}>
+          Done <kbd>D</kbd>
+        </button>
         <button type="button" className="ghost" onClick={() => actions.onEdit(task.id)}>
           Edit <kbd>E</kbd>
         </button>
@@ -155,6 +160,14 @@ export function TaskCardDetail(props: TaskCardDetailProps): React.JSX.Element {
         </button>
         <button type="button" className="ghost" onClick={() => actions.onMoveToToday(task.id)}>
           Move to today <kbd>T</kbd>
+        </button>
+        <button
+          type="button"
+          className="ghost"
+          title="Cycle priority — urgent, high, normal, low, optional"
+          onClick={() => actions.onCyclePriority(task.id)}
+        >
+          Priority <kbd>P</kbd>
         </button>
         <button
           type="button"

@@ -167,12 +167,37 @@ export default function CaptureApp(): React.JSX.Element {
 
   const willSummarize = text.length > 140 || text.includes('\n')
 
+  // Live echo for typed pre-hints (mirrors CaptureBar): the user sees "!hard registered"
+  // before submitting. Deadline bangs only echo while no Tab chip is set (the chip wins).
+  const liveHints: string[] = []
+  for (const m of text.matchAll(BANG_RE)) {
+    const token = m[1].toLowerCase()
+    const label =
+      token === 'hard'
+        ? '● firm'
+        : token === 'soft'
+          ? '○ flexible'
+          : chip === 'none'
+            ? CHIP_LABEL[token as Exclude<ChipState, 'none'>]
+            : null
+    if (label && !liveHints.includes(label)) liveHints.push(label)
+  }
+  for (const m of text.matchAll(TAG_RE)) {
+    const label = `#${m[1].toLowerCase()}`
+    if (!liveHints.includes(label) && liveHints.length < 5) liveHints.push(label)
+  }
+
   return (
     <div className="cap-shell">
-      {(willSummarize || chip !== 'none') && (
+      {(willSummarize || chip !== 'none' || liveHints.length > 0) && (
         <div className="cap-chips">
           {willSummarize && <span className="cap-chip">message — will be summarized</span>}
           {chip !== 'none' && <span className="cap-chip cap-chip-deadline">{CHIP_LABEL[chip]}</span>}
+          {liveHints.map((label) => (
+            <span key={label} className="cap-chip cap-chip-deadline">
+              {label}
+            </span>
+          ))}
         </div>
       )}
       <textarea

@@ -82,6 +82,12 @@ export function TitleBar(props: TitleBarProps): React.JSX.Element {
             )}
           </span>
         )}
+        {/* With no hard deadline the 48px band held two words — the date fills the void. */}
+        {props.ticker && !props.ticker.nextHard && (
+          <span className="titlebar__tickerdate" aria-hidden="true">
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </span>
+        )}
       </header>
     )
   }
@@ -89,7 +95,16 @@ export function TitleBar(props: TitleBarProps): React.JSX.Element {
   return (
     <header className="titlebar drag" onDoubleClick={onHeaderDoubleClick}>
       <BrandGlyph workingCount={props.assistantWorkingCount} shaded={false} />
-      <span className="titlebar__title">{props.viewTitle}</span>
+      {/* The tab row already says where you are — this slot carries the brand at rest and
+          the one calm, always-true working signal while the assistant reads (UX: the wait
+          must be legible somewhere the eye already is, not buried on a bottom card). */}
+      {props.assistantWorkingCount > 0 ? (
+        <span className="titlebar__title titlebar__title--working" aria-live="polite">
+          Organizing {props.assistantWorkingCount}…
+        </span>
+      ) : (
+        <span className="titlebar__title titlebar__title--brand">DeskMate</span>
+      )}
       <div className="titlebar__controls no-drag">
         <button type="button" className="titlebar__btn" aria-label="Quick capture" title="Quick capture (N)" onClick={props.onCapture}>
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">

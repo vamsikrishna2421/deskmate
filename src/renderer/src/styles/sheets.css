@@ -40,7 +40,7 @@
   font-size: var(--fs-micro);
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
   margin-bottom: var(--sp-1);
 }
 .detail__sourcetext {
@@ -273,7 +273,7 @@
   font-size: var(--fs-micro);
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 .editor__field input[type='text'],
 .editor__field input[type='date'],
@@ -330,7 +330,7 @@
   font-size: var(--fs-micro);
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 .settings__row {
   display: flex;

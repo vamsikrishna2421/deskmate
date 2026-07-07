@@ -295,6 +295,8 @@ export interface EnrichShimmerProps {
   state: 'queued' | 'running'
   /** After 8s running: 'Assistant is waking up…' (App/TaskCard owns the timer). */
   slow?: boolean
+  /** After 25s running: 'Still reading — a slow one.' — the copy must keep moving. */
+  verySlow?: boolean
 }
 
 /** 18px check circle, 1.5px stroke, hover tint-fill; done draws the check in var(--dur-check). */

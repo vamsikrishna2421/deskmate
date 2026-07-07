@@ -7,12 +7,16 @@
   border: 1px solid var(--hairline);
   border-radius: var(--r-card);
   padding: var(--sp-3) 14px;
-  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  box-shadow: var(--lift-sm);
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
 }
 .card:hover {
   box-shadow: var(--shadow-sm);
   border-color: var(--ink-3);
 }
+/* the focused card rises toward you on expand, settles back on collapse */
+.card--expanded { box-shadow: var(--shadow-md); }
 .card__rail {
   position: absolute;
   left: 4px;
@@ -71,24 +75,38 @@
   border-radius: var(--r-chip);
 }
 .card__retry:hover { background: var(--accent-tint); }
-.card--washed {
-  animation: wash 800ms var(--ease-exit);
+/* Enrich-settle: one soft accent bloom radiating from where the ✦ mark lands — the single
+   sanctioned "ta-da" (DESIGN §5), located at the assistant's signature, then gone. */
+.card--washed::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    140px 70px at 30px 26px,
+    color-mix(in srgb, var(--accent) 10%, transparent),
+    transparent 70%
+  );
+  animation: bloom 800ms var(--ease-exit) forwards;
 }
-@keyframes wash {
-  from { background-color: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
-  to { background-color: var(--surface); }
+@keyframes bloom {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 .card--washed .card__title,
 .card--washed .card__meta {
-  animation: fade-in var(--dur-base) var(--ease-enter);
+  animation: settle-in var(--dur-base) var(--ease-enter);
 }
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes settle-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+/* Selection lifts the surface, never paints the perimeter — the 2px accent ring stays
+   reserved for keyboard focus (--focus-ring). */
 .card--highlight {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-tint);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--hairline));
 }
 
 /* enrichment states */
@@ -105,12 +123,29 @@
   gap: var(--sp-1);
   flex: 1;
 }
+/* Travelling light band — the assistant visibly "reading" the line, not a flat pulse.
+   Reduced motion: --shimmer-loop is 0ms (tokens.css), leaving a static 70%-opacity bar. */
 .enrich__line {
   display: block;
   height: 8px;
   border-radius: 4px;
   width: 60%;
-  background: var(--sunken);
+  background: linear-gradient(
+    100deg,
+    var(--sunken) 35%,
+    color-mix(in srgb, var(--ink-3) 24%, var(--sunken)) 50%,
+    var(--sunken) 65%
+  );
+  background-size: 200% 100%;
+  animation: sweep var(--shimmer-loop) linear infinite;
+  opacity: 0.85;
+}
+@keyframes sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enrich__line { animation: none; opacity: 0.7; }
 }
 .enrich__line--short { width: 40%; }
 
@@ -136,6 +171,16 @@
 }
 .check--done .check__ring { fill: var(--done); stroke: var(--done); }
 .check--done .check__tick { stroke-dashoffset: 0; }
+/* A single press-overshoot as the ring fills — physical acknowledgement, not a state flip. */
+.check--done { animation: check-press var(--dur-check) var(--ease-standard); }
+@keyframes check-press {
+  0% { transform: scale(1); }
+  55% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .check--done { animation: none; }
+}
 
 /* ── meta badges (§6/§10) ─────────────────────────────────────────────────── */
 .chip {

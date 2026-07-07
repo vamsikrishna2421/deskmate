@@ -125,6 +125,9 @@ export function useGlobalKeys(deps: GlobalKeysDeps): void {
       switch (e.key) {
         case '/':
           e.preventDefault()
+          // Search only lives on task views — on Desk it was a dead end (field opened,
+          // results never rendered). Jump home first so results always appear.
+          if (uiRef.current.view === 'snippets') uiDispatch({ type: 'setView', view: 'today' })
           uiDispatch({ type: 'setSearchOpen', open: true })
           break
         case '?':

@@ -178,7 +178,11 @@ export function EnrichShimmer(props: EnrichShimmerProps): React.JSX.Element {
     <span className="enrich enrich--running" role="status" aria-live="polite">
       <span className="dot dot--pulse pulse" aria-hidden="true" />
       {props.slow ? (
-        'Assistant is waking up…'
+        props.verySlow ? (
+          'Still reading — a slow one.'
+        ) : (
+          'Assistant is waking up…'
+        )
       ) : (
         <>
           <span className="visually-hidden">Reading…</span>
